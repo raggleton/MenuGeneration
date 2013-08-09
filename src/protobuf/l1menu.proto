@@ -1,0 +1,41 @@
+// Compile this with: "$CMSSW_RELEASE_BASE/../../../external/protobuf/2.4.1/bin/protoc -I $CMSSW_BASE/src/MarksStuff/MenuGeneration/src/protobuf --cpp_out=$CMSSW_BASE/src/MarksStuff/MenuGeneration/src/protobuf $CMSSW_BASE/src/MarksStuff/MenuGeneration/src/protobuf/l1menu.proto"
+package l1menuprotobuf;
+
+message Trigger
+{
+	message TriggerParameter
+	{
+		required string name = 1;
+		required float value = 2;
+	}
+	
+	required string name = 1;
+	required int32 version = 2;
+	repeated TriggerParameter parameter = 3;
+	repeated string varying_parameter = 4;
+}
+
+message Event
+{
+	repeated float threshold = 1;
+	optional float weight = 2;
+}
+
+// This idea of a run is purely a collection of events. It bares no relation
+// to what the data considers to be runs.
+message Run
+{
+	repeated Event event = 1;
+}
+
+// I was previously storing all Events in a Sample message as a repeated member.
+// Protobuf doesn't like really long messages though, to guard against maliciously
+// crafted messages bringing down servers with excessive memory allocation. To get
+// around this the file format now has SampleHeader describing currently only the
+// trigger menu (this may change in future but should be backwards compatible).
+// The Events are grouped in arbitrary numbers in Run messages which are simply
+// appended onto the file.
+message SampleHeader
+{
+	repeated Trigger trigger = 1;
+}

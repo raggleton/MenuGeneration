@@ -1,0 +1,10 @@
+<flags CXXFLAGS="-O0 -g -DDEBUG"/>
+<use name="MarksStuff/MenuGeneration"/>
+<use name="root"/>
+<use name="UserCode/L1TriggerDPG"/>
+<use name="FWCore/FWLite"/>
+<include_path path="../interface"/>
+<bin name="l1menuCreateReducedSample" file="l1menuCreateReducedSample.cpp"/>
+<bin name="l1menuCalculateRate" file="l1menuCalculateRate.cpp"/>
+<bin name="l1menuCreateRatePlots" file="l1menuCreateRatePlots.cpp"/>
+<bin name="l1menuFitMenu" file="l1menuFitMenu.cpp"/>

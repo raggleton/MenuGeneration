@@ -1,0 +1,9 @@
+<flags CXXFLAGS="-O0 -g -DDEBUG"/>
+<flags ADD_SUBDIR="1"/>
+<use name="root"/>
+<use name="protobuf"/>
+<use name="UserCode/L1TriggerDPG"/>
+<include_path path="interface"/>
+<export>
+	<lib name="MarksStuffMenuGeneration"/>
+</export>
