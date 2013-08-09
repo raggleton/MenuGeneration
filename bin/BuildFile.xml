@@ -1,5 +1,5 @@
 <flags CXXFLAGS="-O0 -g -DDEBUG"/>
-<use name="MarksStuff/MenuGeneration"/>
+<use name="L1Trigger/MenuGeneration"/>
 <use name="root"/>
 <use name="UserCode/L1TriggerDPG"/>
 <use name="FWCore/FWLite"/>

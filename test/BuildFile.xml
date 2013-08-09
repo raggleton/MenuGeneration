@@ -1,5 +1,5 @@
 <flags CXXFLAGS="-O0 -g -DDEBUG"/>
-<use name="MarksStuff/MenuGeneration"/>
+<use name="L1Trigger/MenuGeneration"/>
 <use name="root"/>
 <use name="UserCode/L1TriggerDPG"/>
 <use name="FWCore/FWLite"/>
@@ -7,6 +7,6 @@
 <bin name="L1MenuTest" file="L1MenuTest.cpp"/>
 <bin name="LoadReducedSampleFromFile" file="LoadReducedSampleFromFile.cpp"/>
 
-<bin name="MarksStuff_MenuGeneration_unitTests" file="unitTestsMain.cpp,*UnitTestSuite.cpp">
+<bin name="L1Trigger_MenuGeneration_unitTests" file="unitTestsMain.cpp,*UnitTestSuite.cpp">
 	<use name="cppunit"/>
 </bin>

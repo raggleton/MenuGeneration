@@ -5,5 +5,5 @@
 <use name="UserCode/L1TriggerDPG"/>
 <include_path path="interface"/>
 <export>
-	<lib name="MarksStuffMenuGeneration"/>
+	<lib name="L1TriggerMenuGeneration"/>
 </export>
