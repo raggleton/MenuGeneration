@@ -16,6 +16,10 @@ void l1menu::tools::CommandLineParser::parse( const int argc, char* argv[] )
 	parsedOptions_.clear();
 	nonOptionArguments_.clear();
 
+	// Suppress the getopt default error because I'll throw an exception if something
+	// goes wrong.
+	opterr=0;
+
 	// First figure out what the executable name is. If there is any path prepended
 	// to it strip that off.
 	executableName_=argv[0];

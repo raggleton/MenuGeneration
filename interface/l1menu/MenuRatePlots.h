@@ -52,7 +52,8 @@ namespace l1menu
 		/** @brief Set the root TDirectory where the histograms will reside. */
 		void setDirectory( TDirectory* pDirectory );
 
-		std::vector<TH1*> getPlots();
+		/** @brief Returns a vector of the individual l1menu::TriggerRatePlot objects that make up the menu rate. */
+		const std::vector<l1menu::TriggerRatePlot>& triggerRatePlots() const;
 
 		/** @brief Relinquish ownership of all the root TH1 plots.
 		 *

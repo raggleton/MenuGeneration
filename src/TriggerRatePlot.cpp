@@ -12,7 +12,6 @@
 #include <sstream>
 #include <algorithm>
 #include <stdexcept>
-#include <iostream>
 
 l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::ITrigger& trigger, std::unique_ptr<TH1> pHistogram, const std::string& versusParameter, const std::vector<std::string> scaledParameters )
 	: pHistogram_( std::move(pHistogram) ), versusParameter_(versusParameter), histogramOwnedByMe_(true)
@@ -96,10 +95,24 @@ l1menu::TriggerRatePlot::TriggerRatePlot( const TH1* pPreExisitingHistogram )
 	initiate( *pTemporaryTriggerCopy, scaledParameters );
 }
 
+l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::TriggerRatePlot& otherTriggerRatePlot )
+	: pHistogram_( static_cast<TH1*>(otherTriggerRatePlot.pHistogram_->Clone()) ),
+	  versusParameter_( otherTriggerRatePlot.versusParameter_ ),
+	  histogramOwnedByMe_(true)
+{
+	// Make sure the cloned histogram doesn't think it belongs to a TDirectory
+	pHistogram_->SetDirectory( nullptr );
+	initiate( *otherTriggerRatePlot.pTrigger_, otherTriggerRatePlot.otherScaledParameters_ );
+}
+
 l1menu::TriggerRatePlot::TriggerRatePlot( l1menu::TriggerRatePlot&& otherTriggerRatePlot ) noexcept
-	: pTrigger_( std::move(otherTriggerRatePlot.pTrigger_) ), pHistogram_( std::move(otherTriggerRatePlot.pHistogram_) ),
-	  versusParameter_( std::move(otherTriggerRatePlot.versusParameter_) ), pParameter_(&pTrigger_->parameter(versusParameter_)),
-	  otherParameterScalings_( std::move(otherTriggerRatePlot.otherParameterScalings_) ), histogramOwnedByMe_(histogramOwnedByMe_)
+	: pTrigger_( std::move(otherTriggerRatePlot.pTrigger_) ),
+	  pHistogram_( std::move(otherTriggerRatePlot.pHistogram_) ),
+	  versusParameter_( std::move(otherTriggerRatePlot.versusParameter_) ),
+	  pParameter_(&pTrigger_->parameter(versusParameter_)),
+	  otherScaledParameters_( std::move(otherTriggerRatePlot.otherScaledParameters_) ),
+	  otherParameterScalings_( std::move(otherTriggerRatePlot.otherParameterScalings_) ),
+	  histogramOwnedByMe_(otherTriggerRatePlot.histogramOwnedByMe_)
 {
 	// No operation besides the initaliser list
 }
@@ -116,6 +129,7 @@ l1menu::TriggerRatePlot& l1menu::TriggerRatePlot::operator=( l1menu::TriggerRate
 	pHistogram_=std::move(otherTriggerRatePlot.pHistogram_);
 	versusParameter_=std::move(otherTriggerRatePlot.versusParameter_);
 	pParameter_=&pTrigger_->parameter(versusParameter_);
+	otherScaledParameters_=std::move(otherTriggerRatePlot.otherScaledParameters_);
 	otherParameterScalings_=std::move(otherTriggerRatePlot.otherParameterScalings_);
 	histogramOwnedByMe_=otherTriggerRatePlot.histogramOwnedByMe_;
 
@@ -296,6 +310,42 @@ std::vector<std::pair<std::string,float> > l1menu::TriggerRatePlot::otherScaledP
 	return returnValue;
 }
 
+bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITrigger& trigger, bool matchTriggerVersion ) const
+{
+	if( trigger.name()!=pTrigger_->name() ) return false;
+	if( matchTriggerVersion && trigger.version()!=pTrigger_->version() ) return false;
+
+	// If control gets this far, then it's the same trigger but the parameters could still be different.
+	// First check all of the parameters that aren't the versus parameter or a parameter that scales with
+	// the versus parameter.
+	for( const auto& parameterName : pTrigger_->parameterNames() )
+	{
+		// Skip over versus parameter and scaled parameters
+		if( parameterName==versusParameter_ ) continue;
+		if( std::find( otherScaledParameters_.begin(), otherScaledParameters_.end(), parameterName )==otherScaledParameters_.end() ) continue;
+
+		if( pTrigger_->parameter(parameterName)!=trigger.parameter(parameterName) ) return false;
+	}
+
+	// Now need to check that any scaled parameters are scaled the same
+	float mainThreshold=trigger.parameter(versusParameter_);
+	std::vector<std::string>::const_iterator iScaledParameterName=otherScaledParameters_.begin();
+	// I already know the otherScaledParameters_ and otherParameterScalings_ vectors
+	// have equal size.
+	for( const auto& paramScalingPair : otherParameterScalings_ )
+	{
+		float thisTriggerParameterScaling=paramScalingPair.second;
+		float parameterScaling=trigger.parameter(*iScaledParameterName)/mainThreshold;
+		// Make sure they're equal. Float equality is a bit dodgy so I'll just check the
+		// difference is less than an arbitrarily small amount.
+		if( std::fabs(parameterScaling-thisTriggerParameterScaling) > std::pow( 10, -5 ) ) return false;
+
+		++iScaledParameterName;
+	}
+
+	// If control has gotten this far, then all of the tests have passed.
+	return true;
+}
 
 float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 {
@@ -340,6 +390,11 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 
 
 TH1* l1menu::TriggerRatePlot::getPlot()
+{
+	return pHistogram_.get();
+}
+
+const TH1* l1menu::TriggerRatePlot::getPlot() const
 {
 	return pHistogram_.get();
 }

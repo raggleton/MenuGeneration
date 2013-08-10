@@ -358,7 +358,7 @@ void l1menu::FullSamplePrivateMembers::fillL1Bits()
 	bool* PhysicsBits=currentEvent.physicsBits();
 
 	// I really don't think this if statement is correct. Surely it
-	// should be "if( gt_ )"? - M. Grimes.
+	// should be "if( inputNtuple.gt_ )"? - M. Grimes.
 	if( !inputNtuple.gt_ )
 	{
 		for( Int_t ibit=0; ibit<128; ibit++ )

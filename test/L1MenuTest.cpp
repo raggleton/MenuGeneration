@@ -38,17 +38,17 @@ int main( int argc, char* argv[] )
 		const float orbitsPerSecond=11246;
 		const float numberOfBunches=2760;
 
-		l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
-
-		std::cout << "------ Available triggers ------" << std::endl;
-		std::cout << std::left << std::setw(25) << "Name" << "Version" << "\n";
-		std::cout << "--------------------------------" << std::endl;
-		std::vector<l1menu::TriggerTable::TriggerDetails> listOfTriggers=triggerTable.listTriggers();
-		for( std::vector<l1menu::TriggerTable::TriggerDetails>::const_iterator iTriggerEntry=listOfTriggers.begin(); iTriggerEntry!=listOfTriggers.end(); ++iTriggerEntry )
-		{
-			std::cout << std::left << std::setw(25) << iTriggerEntry->name << iTriggerEntry->version << "\n";
-		}
-		std::cout << "------- End of triggers -------" << std::endl;
+//		l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
+//
+//		std::cout << "------ Available triggers ------" << std::endl;
+//		std::cout << std::left << std::setw(25) << "Name" << "Version" << "\n";
+//		std::cout << "--------------------------------" << std::endl;
+//		std::vector<l1menu::TriggerTable::TriggerDetails> listOfTriggers=triggerTable.listTriggers();
+//		for( std::vector<l1menu::TriggerTable::TriggerDetails>::const_iterator iTriggerEntry=listOfTriggers.begin(); iTriggerEntry!=listOfTriggers.end(); ++iTriggerEntry )
+//		{
+//			std::cout << std::left << std::setw(25) << iTriggerEntry->name << iTriggerEntry->version << "\n";
+//		}
+//		std::cout << "------- End of triggers -------" << std::endl;
 
 		// Open a file to save the histograms that will automatically
 		// save if it goes out of scope (i.e. if an exception is thrown).
@@ -88,8 +88,8 @@ int main( int argc, char* argv[] )
 
 
 
-		const auto& fullPlots=rateVersusThresholdPlots.getPlots();
-		const auto& reducedPlots=reducedRateVersusThresholdPlots.getPlots();
+		const auto& fullPlots=rateVersusThresholdPlots.triggerRatePlots();
+		const auto& reducedPlots=reducedRateVersusThresholdPlots.triggerRatePlots();
 
 		pSubDirectory=pMyRootFile->mkdir("differences");
 
@@ -97,13 +97,13 @@ int main( int argc, char* argv[] )
 				iFullPlot!=fullPlots.end() && iReducedPlot!=reducedPlots.end();
 				++iFullPlot, ++iReducedPlot )
 		{
-			TAxis* pAxis=(*iFullPlot)->GetXaxis();
-			TH1* pNewPlot=new TH1F( (std::string( (*iFullPlot)->GetName() )+"_difference").c_str(), (*iFullPlot)->GetTitle(), pAxis->GetNbins(), pAxis->GetXmin(), pAxis->GetXmax() );
+			TAxis* pAxis=iFullPlot->getPlot()->GetXaxis();
+			TH1* pNewPlot=new TH1F( (std::string( iFullPlot->getPlot()->GetName() )+"_difference").c_str(), iFullPlot->getPlot()->GetTitle(), pAxis->GetNbins(), pAxis->GetXmin(), pAxis->GetXmax() );
 			pNewPlot->SetDirectory( pSubDirectory );
 
 			for( int binNumber=1; binNumber<=pAxis->GetNbins(); ++binNumber )
 			{
-				pNewPlot->SetBinContent( binNumber, (*iFullPlot)->GetBinContent(binNumber)-(*iReducedPlot)->GetBinContent(binNumber) );
+				pNewPlot->SetBinContent( binNumber, iFullPlot->getPlot()->GetBinContent(binNumber)-iReducedPlot->getPlot()->GetBinContent(binNumber) );
 			}
 		}
 

@@ -11,6 +11,7 @@ class TriggerTableUnitTestSuite : public CPPUNIT_NS::TestFixture
 {
 	CPPUNIT_TEST_SUITE(TriggerTableUnitTestSuite);
 	CPPUNIT_TEST(testGettingAndSettingAllTriggerParameters);
+	CPPUNIT_TEST(dumpTriggerTable);
 	CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -20,6 +21,9 @@ public:
 
 protected:
 	void testGettingAndSettingAllTriggerParameters();
+	/** @brief Not really a test as such, just prints out all the triggers for the
+	 * user to see what triggers are registered. */
+	void dumpTriggerTable();
 };
 
 
@@ -31,6 +35,7 @@ protected:
 #include "l1menu/ITrigger.h"
 #include <stdexcept>
 #include <cmath>
+#include <iomanip>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TriggerTableUnitTestSuite);
 
@@ -67,4 +72,22 @@ void TriggerTableUnitTestSuite::testGettingAndSettingAllTriggerParameters()
 			CPPUNIT_ASSERT_DOUBLES_EQUAL( newValue, pTrigger->parameter(parameterName), std::pow(10,-7) );
 		}
 	}
+}
+
+void TriggerTableUnitTestSuite::dumpTriggerTable()
+{
+	// No tests performed with this one, just prints out the available triggers
+	// for the user to inspect and see what's registered.
+	l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
+
+	std::cout << "\n"
+			<< "------ Available triggers ------" << "\n"
+			<< std::left << std::setw(25) << "Name" << "Version" << "\n"
+			<< "--------------------------------" << std::endl;
+	std::vector<l1menu::TriggerTable::TriggerDetails> listOfTriggers=triggerTable.listTriggers();
+	for( std::vector<l1menu::TriggerTable::TriggerDetails>::const_iterator iTriggerEntry=listOfTriggers.begin(); iTriggerEntry!=listOfTriggers.end(); ++iTriggerEntry )
+	{
+		std::cout << std::left << std::setw(25) << iTriggerEntry->name << iTriggerEntry->version << std::endl;
+	}
+	std::cout << "------- End of triggers -------" << std::endl;
 }

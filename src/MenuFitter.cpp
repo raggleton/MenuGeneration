@@ -12,6 +12,7 @@
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerRatePlot.h"
+#include "l1menu/MenuRatePlots.h"
 #include "l1menu/tools/tools.h"
 #include "l1menu/tools/stringManipulation.h"
 
@@ -44,9 +45,14 @@ namespace l1menu
 	class MenuFitterPrivateMembers
 	{
 	public:
-		MenuFitterPrivateMembers( const l1menu::ISample& newSample, const l1menu::MenuRatePlots* pRatePlots ) : sample(newSample), pMenuRatePlots(pRatePlots) {}
+		MenuFitterPrivateMembers( const l1menu::ISample& newSample, const l1menu::MenuRatePlots* pRatePlots )
+			: sample(newSample)
+		{
+			// If a l1menu::MenuRatePlots has been provided then I need to take a copy.
+			if( pRatePlots!=nullptr ) pMenuRatePlots.reset( new l1menu::MenuRatePlots(*pRatePlots) );
+		}
 		const l1menu::ISample& sample;
-		const l1menu::MenuRatePlots* pMenuRatePlots;
+		std::unique_ptr<l1menu::MenuRatePlots> pMenuRatePlots;
 		l1menu::TriggerMenu menu;
 		std::vector< ::TriggerScalingDetails > scalableTriggers;
 		std::vector<std::pair<size_t,float> > bandwidthFractions;
@@ -59,13 +65,13 @@ namespace l1menu
 l1menu::MenuFitter::MenuFitter( const l1menu::ISample& sample )
 	: pImple_( new MenuFitterPrivateMembers(sample,NULL) )
 {
-
+	// No operation
 }
 
 l1menu::MenuFitter::MenuFitter( const l1menu::ISample& sample, const l1menu::MenuRatePlots& menuRatePlots )
 	: pImple_( new MenuFitterPrivateMembers(sample,&menuRatePlots) )
 {
-
+	// No operation
 }
 
 l1menu::MenuFitter::~MenuFitter()
@@ -216,26 +222,8 @@ void l1menu::MenuFitterPrivateMembers::initiateOtherTriggerInfo( size_t triggerN
 
 	if( !lockThresholds )
 	{
-
-		//
-		// Create a rate plot for this trigger
-		//
 		const std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames(newTrigger);
 		const std::string& mainThreshold=thresholdNames.front();
-		unsigned int numberOfBins=100;
-		float lowerEdge=0;
-		float upperEdge=100;
-		try
-		{
-			l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
-			numberOfBins=triggerTable.getSuggestedNumberOfBins( newTrigger.name(), mainThreshold );
-			lowerEdge=triggerTable.getSuggestedLowerEdge( newTrigger.name(), mainThreshold );
-			upperEdge=triggerTable.getSuggestedUpperEdge( newTrigger.name(), mainThreshold );
-		}
-		catch( std::exception& error) { /* Do nothing. If no binning suggestions have been set for this trigger use the defaults I set above. */ }
-
-		l1menu::TriggerRatePlot ratePlot(newTrigger,newTrigger.name()+"_v_allThresholdsScaled",numberOfBins,lowerEdge,upperEdge,mainThreshold,thresholdNames);
-		ratePlot.addSample( sample );
 
 		// Record the scaling between the main threshold and all of the others, so that
 		// when they get increased/decreased it's all done proportionally.
@@ -248,10 +236,60 @@ void l1menu::MenuFitterPrivateMembers::initiateOtherTriggerInfo( size_t triggerN
 		}
 
 		//
-		// Bundle all of this information in the helper structure I wrote in
-		// the unnamed namespace.
+		// I need a rate plot for this trigger. First check to see if there is one that matches
+		// in the rate plots that might have been given in the constructor.
 		//
-		scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,std::move(ratePlot),mainThreshold,std::move(thresholdScalings)} );
-	}
+		const l1menu::TriggerRatePlot* pPreviouslyCreatedRatePlot=nullptr;
+		if( pMenuRatePlots!=nullptr )
+		{
+			for( const auto& triggerRatePlot : pMenuRatePlots->triggerRatePlots() )
+			{
+				// See if the plot was made with a trigger equivalent to this one
+				if( triggerRatePlot.triggerMatches(newTrigger) )
+				{
+					pPreviouslyCreatedRatePlot=&triggerRatePlot;
+					break;
+				}
+			}
+		}
+
+		if( pPreviouslyCreatedRatePlot!=nullptr )
+		{
+			std::cout << "Found previously created plot for " << newTrigger.name() << std::endl;
+			//
+			// Bundle all of this information in the helper structure I wrote in
+			// the unnamed namespace.
+			//
+			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,*pPreviouslyCreatedRatePlot,mainThreshold,std::move(thresholdScalings)} );
+		}
+		else
+		{
+			std::cout << "Need to create plot for " << newTrigger.name() << std::endl;
+			//
+			// Either no rate plots were supplied or a suitable one wasn't found, so I need to
+			// create a rate plot for this trigger.
+			//
+			unsigned int numberOfBins=100;
+			float lowerEdge=0;
+			float upperEdge=100;
+			try
+			{
+				l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
+				numberOfBins=triggerTable.getSuggestedNumberOfBins( newTrigger.name(), mainThreshold );
+				lowerEdge=triggerTable.getSuggestedLowerEdge( newTrigger.name(), mainThreshold );
+				upperEdge=triggerTable.getSuggestedUpperEdge( newTrigger.name(), mainThreshold );
+			}
+			catch( std::exception& error) { /* Do nothing. If no binning suggestions have been set for this trigger use the defaults I set above. */ }
+
+			l1menu::TriggerRatePlot ratePlot(newTrigger,newTrigger.name()+"_v_allThresholdsScaled",numberOfBins,lowerEdge,upperEdge,mainThreshold,thresholdNames);
+			ratePlot.addSample( sample );
+
+			//
+			// Bundle all of this information in the helper structure I wrote in
+			// the unnamed namespace.
+			//
+			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,std::move(ratePlot),mainThreshold,std::move(thresholdScalings)} );
+		} // end of else block where pPreviouslyCreatedRatePlot is null
+	} // end of "if( !lockThresholds )"
 
 }

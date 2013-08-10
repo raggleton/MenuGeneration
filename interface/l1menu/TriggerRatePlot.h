@@ -60,7 +60,7 @@ namespace l1menu
 		 * Note that a copy is made of the histogram.
 		 */
 		explicit TriggerRatePlot( const TH1* pPreExisitingHistogram );
-		TriggerRatePlot( l1menu::TriggerRatePlot& otherTriggerRatePlot ) = delete;
+		TriggerRatePlot( const l1menu::TriggerRatePlot& otherTriggerRatePlot );
 		TriggerRatePlot& operator=( l1menu::TriggerRatePlot& otherTriggerRatePlot ) = delete;
 
 		/** @brief Explicit rvalue constructor to allow moving of TriggerRatePlot objects. */
@@ -86,6 +86,21 @@ namespace l1menu
 		 * the scaling compared to the main threshold. */
 		std::vector<std::pair<std::string,float> > otherScaledParameters() const;
 
+		/** @brief Checks the supplied trigger to see if it matches the trigger this plot was created with, i.e. whether
+		 * this plot is able to give the rate for it.
+		 *
+		 * Returns true if all the parameters match other than the versus parameter. If this plot has
+		 * any scaled parameters then it will check the supplied trigger to see if the scaling to the
+		 * versus parameter is the same instead of checking the absolute value.
+		 *
+		 * @parameter   trigger                The trigger to check against.
+		 * @parameter   matchTriggerVersion    If this is set to false, then it doesn't bother checking that the
+		 *                                     supplied trigger has the same version as the trigger this plot was
+		 *                                     made with.
+		 * @return                             True if this plot was created with an equivalent trigger.
+		 */
+		bool triggerMatches( const l1menu::ITrigger& trigger, bool matchTriggerVersion=true ) const;
+
 		/** @brief Returns the threshold that will will provide a given rate.
 		 *
 		 * Interpolates between the bins using a simple linear fit of the two bins
@@ -95,6 +110,7 @@ namespace l1menu
 
 		/** @brief Returns the internal pointer to the root histogram. Ownership is retained by TriggerRatePlot. */
 		TH1* getPlot();
+		const TH1* getPlot() const;
 
 		/** @brief Tells TriggerRatePlot to relinquish ownership of the internal root histogram. A pointer to the
 		 * histogram is also returned.

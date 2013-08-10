@@ -143,14 +143,9 @@ void l1menu::MenuRatePlots::setDirectory( TDirectory* pDirectory )
 	}
 }
 
-std::vector<TH1*> l1menu::MenuRatePlots::getPlots()
+const std::vector<l1menu::TriggerRatePlot>& l1menu::MenuRatePlots::triggerRatePlots() const
 {
-	std::vector<TH1*> returnValue;
-	for( auto& ratePlot : triggerPlots_ )
-	{
-		returnValue.push_back( ratePlot.getPlot() );
-	}
-	return returnValue;
+	return triggerPlots_;
 }
 
 void l1menu::MenuRatePlots::relinquishOwnershipOfPlots()

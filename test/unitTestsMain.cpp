@@ -25,6 +25,7 @@
 
 
 /** @brief Subclass the parameter store so that I can have methods to modify the parameters.
+ *
  * @author Mark Grimes (mark.grimes@bristol.ac.uk)
  * @date 12/Aug/2013
  */
@@ -53,7 +54,14 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 			<< std::endl;
 }
 
-int main( int argc, char* argv[] )
+/** @brief Parses the command line.
+ *
+ * @return                         Returns true if everything went okay, false if the program should
+ *                                 exit without error e.g. if "help" option was specified the program
+ *                                 should exit with no error.
+ * @throw   std::runtime_error     If anything goes wrong and the program should exit with an error.
+ */
+bool handleCommandLine( int argc, char* argv[] )
 {
 	l1menu::tools::CommandLineParser commandLineParser;
 	commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
@@ -61,21 +69,21 @@ int main( int argc, char* argv[] )
 	try{ commandLineParser.parse( argc, argv ); }
 	catch( std::runtime_error& exception )
 	{
-		std::cerr << "Error parsing the command line: " << exception.what() << std::endl;
-		return -1;
+		// I just want to print the usage here and let the caller handle the exception
+		printUsage( commandLineParser.executableName(), std::cerr );
+		throw;
 	}
 
 	if( commandLineParser.optionHasBeenSet( "help" ) )
 	{
 		printUsage( commandLineParser.executableName() );
-		return 0;
+		return false;
 	}
 
 	if( commandLineParser.nonOptionArguments().size()>2 )
 	{
-		std::cerr << "Too many command line arguments" << std::endl;
-		printUsage( commandLineParser.executableName() );
-		return -1;
+		printUsage( commandLineParser.executableName(), std::cerr );
+		throw std::runtime_error( "Too many command line arguments" );
 	}
 
 	//
@@ -105,11 +113,22 @@ int main( int argc, char* argv[] )
 		MutableTestParameters<std::string>::setParameter( "TEST_MENU_FILENAME", filename );
 	}
 
+	return true;
+}
 
-	//
-	// Everything up to here was just to handle the command line arguments.
-	// Now I can get into the main part of the program.
-	//
+int main( int argc, char* argv[] )
+{
+	try
+	{
+		// Exit if something on the command line says so (e.g. "help" option should print usage and exit).
+		if( !handleCommandLine( argc, argv ) ) return 0;
+	}
+	catch( std::runtime_error& exception )
+	{
+		std::cerr << "Error parsing the command line: " << exception.what() << std::endl;
+		return -1;
+	}
+
 
 	// Create the event manager and test controller
 	CPPUNIT_NS::TestResult controller;
