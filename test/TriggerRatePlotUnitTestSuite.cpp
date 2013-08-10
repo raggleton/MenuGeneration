@@ -47,6 +47,7 @@ protected:
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerRatePlot.h"
 #include "l1menu/tools/tools.h"
+#include "TestParameters.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TriggerRatePlotUnitTestSuite);
 
@@ -55,30 +56,8 @@ TriggerRatePlotUnitTestSuite::TriggerRatePlotUnitTestSuite()
 	pVerboseOutput_=nullptr;
 	//pVerboseOutput_=&std::cout;
 
-	char* pEnvironmentVariable=std::getenv("TESTSUITE_INPUTFILE");
-	if( pEnvironmentVariable!=nullptr ) inputSampleFilename_=pEnvironmentVariable;
-	else
-	{
-		inputSampleFilename_="";
-		pEnvironmentVariable=std::getenv("HOME");
-		if( pEnvironmentVariable!=nullptr ) inputSampleFilename_=pEnvironmentVariable+std::string("/");
-		inputSampleFilename_+="MenuGenerationFiles/Fallback_NeutrinoGun_PU100.proto";
-		std::cerr << "Environment variable TESTSUITE_INPUTFILE has not been set, so using the default value of "
-				<< inputSampleFilename_ << std::endl;
-	}
-
-	pEnvironmentVariable=std::getenv("TESTSUITE_INPUTMENU");
-	if( pEnvironmentVariable!=nullptr ) inputMenuFilename_=pEnvironmentVariable;
-	else
-	{
-		inputMenuFilename_="";
-		pEnvironmentVariable=std::getenv("CMSSW_BASE");
-		if( pEnvironmentVariable!=nullptr ) inputMenuFilename_=pEnvironmentVariable+std::string("/");
-		inputMenuFilename_+="src/UserCode/L1TriggerUpgrade/marksStuff/L1Menu_v17m20_std.txt";
-		std::cerr << "Environment variable TESTSUITE_INPUTMENU has not been set, so using the default value of "
-				<< inputMenuFilename_ << std::endl;
-	}
-
+	inputSampleFilename_=TestParameters<std::string>::instance().getParameter( "TEST_SAMPLE_FILENAME" );
+	inputMenuFilename_=TestParameters<std::string>::instance().getParameter( "TEST_MENU_FILENAME" );
 }
 
 void TriggerRatePlotUnitTestSuite::setUp()

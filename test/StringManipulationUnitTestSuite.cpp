@@ -36,7 +36,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(StringManipulationUnitTestSuite);
 
 void StringManipulationUnitTestSuite::setUp()
 {
-
+	// No operation
 }
 
 void StringManipulationUnitTestSuite::testSplitByWhitespace()
