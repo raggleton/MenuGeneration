@@ -102,6 +102,21 @@ namespace l1menu
 		/** @brief Converts a value in calorimeter region to absolute eta. */
 		float convertRegionCutToEtaCut( float regionCut );
 
+		/** @brief Sets the binning for trigger plots to match the binning that was used in the old code.
+		 *
+		 * Calls TriggerTable::registerSuggestedBinning for each trigger with the values hard coded in the old L1Menu2015.C
+		 * file. Only the main (i.e. first) threshold is changed. In the old code all the other thresholds were scaled off
+		 * the main threshold.
+		 *
+		 * @post Any later calls to TriggerTable::getSuggestedNumberOfBins, TriggerTable::getSuggestedLowerEdge and
+		 *       TriggerTable::getSuggestedUpperEdge for a given trigger will return the values hard coded in the
+		 *       old L1Menu2015.C file.
+		 *
+		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+		 * @date 28/Aug/2013
+		 */
+		void setBinningToL1Menu2015Values();
+
 		/** @brief Examines the file and creates the appropriate concrete implementation of ISample for it.
 		 *
 		 * Currently only works for ReducedSample, which makes this function a bit pointless. I'll add

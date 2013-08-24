@@ -317,6 +317,35 @@ float l1menu::tools::convertRegionCutToEtaCut( float regionCut )
 	return std::fabs(regionBounds.second);
 }
 
+void l1menu::tools::setBinningToL1Menu2015Values()
+{
+	l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
+	triggerTable.registerSuggestedBinning( "L1_DoubleJet",        "threshold1",     101,  -2,    402    );
+	triggerTable.registerSuggestedBinning( "L1_DoubleMu",         "threshold1",     141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_HTM",              "threshold1",     201,  -0.5,  200.5  );
+	triggerTable.registerSuggestedBinning( "L1_HTT",              "threshold1",     1601, -0.25, 800.25 );
+	triggerTable.registerSuggestedBinning( "L1_isoEG_EG",         "leg1threshold1", 64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_SingleIsoEG_HTM",  "leg1threshold1", 64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_SingleIsoEG_CJet", "leg1threshold1", 64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_isoEG_Mu",         "leg1threshold1", 64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_isoEG_Tau",        "leg1threshold1", 64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_isoMu_Mu",         "threshold1",     141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_isoTau_Tau",       "leg1threshold1", 201,  -0.5,  200.5  );
+	triggerTable.registerSuggestedBinning( "L1_isoMu_EG",         "leg1threshold1", 141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_isoMu_Tau",        "leg1threshold1", 141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_SingleMu_HTM",     "leg1threshold1", 141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_SingleMu_CJet",    "leg1threshold1", 141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_QuadJetC",         "threshold1",     101,  -2,    402    );
+	triggerTable.registerSuggestedBinning( "L1_SingleEG",         "threshold1",     64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_SingleIsoEG",      "threshold1",     64,   -0.5,  63.5   );
+	triggerTable.registerSuggestedBinning( "L1_SingleIsoMu",      "threshold1",     141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_SingleIsoTau",     "threshold1",     201,  -0.5,  200.5  );
+	triggerTable.registerSuggestedBinning( "L1_SingleJetC",       "threshold1",     101,  -2,    402    );
+	triggerTable.registerSuggestedBinning( "L1_SingleMu",         "threshold1",     141,  -0.5,  140.5  );
+	triggerTable.registerSuggestedBinning( "L1_SingleTau",        "threshold1",     201,  -0.5,  200.5  );
+	triggerTable.registerSuggestedBinning( "L1_SixJet",           "threshold1",     101,  -2,    402    );
+}
+
 std::unique_ptr<l1menu::ISample> l1menu::tools::loadSample( const std::string& filename )
 {
 	std::unique_ptr<l1menu::ISample> pReturnValue;
