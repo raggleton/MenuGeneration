@@ -9,27 +9,61 @@
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/tools/tools.h"
+#include "l1menu/tools/CommandLineParser.h"
+
+void printUsage( const std::string& executableName, std::ostream& output=std::cout )
+{
+	output << "Usage:" << "\n"
+			<< "\t" << executableName << " [--output <output filename>] [--original-binning] <sample filename> <menu filename>" << "\n"
+			<< "\t" << "\t" << "Creates trigger rate plots using the menu and sample provided. The \"output\" option allows" << "\n"
+			<< "\t" << "\t" << "you to specify the filename for the output (default is \"rateHistograms.root\"). The" << "\n"
+			<< "\t" << "\t" << "\"original-binning\" option will use the binning that was used in the L1Menu2015.C macro." << "\n"
+			<< "\n"
+			<< "\t" << executableName << " --help" << "\n"
+			<< "\t" << "\t" << "prints this help message"
+			<< "\n"
+			<< std::endl;
+}
+
 
 int main( int argc, char* argv[] )
 {
-	gSystem->Load("libFWCoreFWLite.so");
-	AutoLibraryLoader::enable();
+//	gSystem->Load("libFWCoreFWLite.so");
+//	AutoLibraryLoader::enable();
 
+	std::string sampleFilename;
+	std::string menuFilename;
+	std::string outputFilename="rateHistograms.root"; // default value if not specified on the command line
 
-	if( argc!=3 && argc!=4 )
+	l1menu::tools::CommandLineParser commandLineParser;
+	try
 	{
-		std::string executableName=argv[0];
-		size_t lastSlashPosition=executableName.find_last_of('/');
-		if( lastSlashPosition!=std::string::npos ) executableName=executableName.substr( lastSlashPosition+1, std::string::npos );
-		std::cerr << "   Usage: " << executableName << " <sample filename> <menu filename> [output filename]" << std::endl;
+		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
+		commandLineParser.addOption( "output", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "original-binning", l1menu::tools::CommandLineParser::NoArgument );
+		commandLineParser.parse( argc, argv );
+
+		if( commandLineParser.optionHasBeenSet( "help" ) )
+		{
+			printUsage( commandLineParser.executableName() );
+			return 0;
+		}
+
+		if( commandLineParser.optionHasBeenSet( "output" ) ) outputFilename=commandLineParser.optionArguments("output").back();
+		if( commandLineParser.optionHasBeenSet( "original-binning" ) ) l1menu::tools::setBinningToL1Menu2015Values();
+		if( commandLineParser.nonOptionArguments().size()<2 ) throw std::runtime_error( "Not enough command line arguments" );
+
+		const std::vector<std::string>& arguments=commandLineParser.nonOptionArguments();
+		sampleFilename=arguments[0];
+		menuFilename=arguments[1];
+	} // end of try block
+	catch( std::exception& error )
+	{
+		std::cerr << "Error parsing the command line: " << error.what() << std::endl;
+		printUsage( commandLineParser.executableName(), std::cerr );
 		return -1;
 	}
 
-	std::string sampleFilename=argv[1];
-	std::string menuFilename=argv[2];
-	std::string outputFilename;
-	if( argc>3 ) outputFilename=argv[3];
-	else outputFilename="rateHistograms.root";
 
 	try
 	{

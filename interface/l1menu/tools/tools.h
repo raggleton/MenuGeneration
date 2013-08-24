@@ -19,6 +19,7 @@ namespace l1menu
 	class L1TriggerDPGEvent;
 	class IMenuRate;
 	class ISample;
+	class TriggerMenu;
 }
 
 
@@ -82,6 +83,13 @@ namespace l1menu
 		 * @date 05/Jul/2013
 		 */
 		void dumpTriggerRates( std::ostream& output, const std::unique_ptr<const l1menu::IMenuRate>& pMenuRates );
+
+		/** @brief Prints out the trigger menu in the same format as the old L1Menu2015 to the given ostream
+		 *
+		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+		 * @date 28/Aug/2013
+		 */
+		void dumpTriggerMenu( std::ostream& output, const l1menu::TriggerMenu& menu  );
 
 		/** @brief Gives the eta bounds of the requested calorimeter region.
 		 *

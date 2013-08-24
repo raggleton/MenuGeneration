@@ -11,6 +11,7 @@
 #include "l1menu/ITrigger.h"
 #include "l1menu/L1TriggerDPGEvent.h"
 #include "l1menu/TriggerTable.h"
+#include "l1menu/TriggerMenu.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/ITriggerRate.h"
 #include "l1menu/FullSample.h"
@@ -257,6 +258,11 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const std::unique_pt
 			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << pMenuRates->totalRate() << "kHz" << "\n"
 			<< " Total L1 Rate (without overlaps) = " << std::setw(8) << totalNoOverlaps << "kHz" << "\n"
 			<< " Total L1 Rate (pure triggers)    = " << std::setw(8) << totalPure << "kHz" << std::endl;
+}
+
+void l1menu::tools::dumpTriggerMenu( std::ostream& output, const l1menu::TriggerMenu& menu )
+{
+
 }
 
 std::pair<float,float> l1menu::tools::calorimeterRegionEtaBounds( size_t calorimeterRegion )

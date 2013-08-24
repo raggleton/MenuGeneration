@@ -8,3 +8,4 @@
 <bin name="l1menuCalculateRate" file="l1menuCalculateRate.cpp"/>
 <bin name="l1menuCreateRatePlots" file="l1menuCreateRatePlots.cpp"/>
 <bin name="l1menuFitMenu" file="l1menuFitMenu.cpp"/>
+<bin name="l1menuShowReducedSampleMenu" file="l1menuShowReducedSampleMenu.cpp"/>
