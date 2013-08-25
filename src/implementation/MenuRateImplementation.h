@@ -3,7 +3,7 @@
 
 #include "l1menu/IMenuRate.h"
 #include <vector>
-#include "l1menu/implementation/TriggerRateImplementation.h"
+#include "TriggerRateImplementation.h"
 
 //
 // Forward declarations

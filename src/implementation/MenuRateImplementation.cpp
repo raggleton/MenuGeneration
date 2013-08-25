@@ -1,4 +1,4 @@
-#include "l1menu/implementation/MenuRateImplementation.h"
+#include "MenuRateImplementation.h"
 
 #include <string>
 #include <utility>
@@ -8,7 +8,7 @@
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/ISample.h"
 #include "l1menu/IEvent.h"
-#include "l1menu/implementation/TriggerRateImplementation.h"
+#include "TriggerRateImplementation.h"
 
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {

@@ -1,6 +1,6 @@
-#include "l1menu/implementation/TriggerRateImplementation.h"
+#include "TriggerRateImplementation.h"
 
-#include "l1menu/implementation/MenuRateImplementation.h"
+#include "MenuRateImplementation.h"
 #include "l1menu/TriggerTable.h"
 #include "l1menu/ITrigger.h"
 

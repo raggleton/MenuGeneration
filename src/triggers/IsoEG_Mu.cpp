@@ -1,7 +1,7 @@
 #include "CrossTrigger.h"
 #include "SingleIsoEGEta.h"
 #include "SingleIsoMuEta.h"
-#include "l1menu/implementation/RegisterTriggerMacro.h"
+#include "../implementation/RegisterTriggerMacro.h"
 
 namespace l1menu
 {

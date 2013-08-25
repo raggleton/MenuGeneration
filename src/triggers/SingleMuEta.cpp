@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include "l1menu/L1TriggerDPGEvent.h"
-#include "l1menu/implementation/RegisterTriggerMacro.h"
+#include "../implementation/RegisterTriggerMacro.h"
 #include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
 
 

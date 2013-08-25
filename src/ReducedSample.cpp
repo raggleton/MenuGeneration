@@ -16,7 +16,7 @@
 #include "l1menu/IMenuRate.h"
 #include "l1menu/ITriggerRate.h"
 #include "l1menu/tools/tools.h"
-#include "l1menu/implementation/MenuRateImplementation.h"
+#include "./implementation/MenuRateImplementation.h"
 #include "protobuf/l1menu.pb.h"
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/gzip_stream.h>

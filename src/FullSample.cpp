@@ -8,7 +8,7 @@
 #include "l1menu/L1TriggerDPGEvent.h"
 #include "l1menu/ICachedTrigger.h"
 #include "l1menu/IMenuRate.h"
-#include "l1menu/implementation/MenuRateImplementation.h"
+#include "./implementation/MenuRateImplementation.h"
 #include "L1UpgradeNtuple.h"
 #include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
 #include "UserCode/L1TriggerUpgrade/interface/L1AnalysisL1ExtraUpgradeDataFormat.h"
