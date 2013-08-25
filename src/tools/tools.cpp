@@ -262,6 +262,59 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const std::unique_pt
 
 void l1menu::tools::dumpTriggerMenu( std::ostream& output, const l1menu::TriggerMenu& menu )
 {
+	for( size_t index=0; index< menu.numberOfTriggers(); ++index )
+	{
+		const l1menu::ITrigger& trigger=menu.getTrigger(index);
+		output << std::setw(21) << trigger.name()
+				<< " 00 " // previous code output the trigger bit number. For now I'll output an arbitrary "00"
+				<< std::setw(5) << " 1 "; // haven't implemented prescales yet, so output "1"
+		std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames(trigger);
+		for( const auto& name : thresholdNames ) output << std::setw(5) << trigger.parameter(name) << " ";
+		// If there is fewer than 4 thresholds, then I need to output arbitrary null values
+		for( size_t thresholdNumber=thresholdNames.size(); thresholdNumber<4; ++thresholdNumber ) output << std::setw(5) << -1 << " ";
+
+		// I now need to output the eta cut, which can be stored in a number of ways.
+		float etaCut;
+		try{ etaCut=trigger.parameter("etaCut"); }
+		catch(...)
+		{
+			try{ etaCut=trigger.parameter("regionCut"); }
+			catch(...)
+			{
+				try{ etaCut=trigger.parameter("leg1etaCut"); }
+				catch(...)
+				{
+					try{ etaCut=trigger.parameter("leg1regionCut"); }
+					catch(...)
+					{
+						// Print out a default of -1 if no eta cut can be found
+						etaCut=-1;
+					}
+				}
+			}
+		}
+		output << std::setw(5) << etaCut << " ";
+
+		// Also need muon quality, if it exists
+		float muonQuality;
+		try{ muonQuality=trigger.parameter("muonQuality"); }
+		catch(...)
+		{
+			try{ muonQuality=trigger.parameter("leg1muonQuality"); }
+			catch(...)
+			{
+				try{ muonQuality=trigger.parameter("leg2muonQuality"); }
+				catch(...)
+				{
+					// Print out a default of -1 if no quality can be found
+					muonQuality=-1;
+				}
+			}
+		}
+		output << std::setw(5) << muonQuality << " ";
+
+		output << "\n";
+	}
 
 }
 

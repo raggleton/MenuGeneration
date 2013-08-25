@@ -87,7 +87,13 @@ int main( int argc, char* argv[] )
 		l1menu::MenuRatePlots rateVersusThresholdPlots( menu );
 
 		// Use a smart pointer with a custom deleter that will close the file properly.
-		std::unique_ptr<TFile,void(*)(TFile*)> pMyRootFile( new TFile( outputFilename.c_str(), "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+		std::unique_ptr<TFile,std::function<void(TFile*)>> pMyRootFile( new TFile( outputFilename.c_str(), "RECREATE" ),
+				[outputFilename](TFile*p) // Use a lambda function to automatically write the file.
+				{
+					p->Write();p->Close();delete p;
+					std::cout << "Rate plots written to file \"" << outputFilename << "\"" << std::endl;
+				} );
+
 		rateVersusThresholdPlots.setDirectory( pMyRootFile.get() );
 		rateVersusThresholdPlots.relinquishOwnershipOfPlots();
 
