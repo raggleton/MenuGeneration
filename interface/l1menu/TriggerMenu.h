@@ -15,6 +15,11 @@ namespace l1menu
 
 namespace l1menu
 {
+	/** @brief A collection of ITriggers that make up a menu.
+	 *
+	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+	 * @date sometime around May 2013
+	 */
 	class TriggerMenu
 	{
 		friend class l1menu::MenuFitter;
@@ -30,9 +35,9 @@ namespace l1menu
 		ITrigger& addTrigger( const std::string& triggerName, unsigned int version );
 		/** @brief Copies the given trigger including all parameters.
 		 *
-		 * @param[in] trigger    The trigger to copy.
-		 * @return               A reference to the trigger just added. Note that since it's copied,
-		 *                       this is not the same as the reference supplied as input.
+		 * @param[in] triggerToCopy    The trigger to copy.
+		 * @return                     A reference to the trigger just added. Note that since it's copied,
+		 *                             this is not the same as the reference supplied as input.
 		 */
 		ITrigger& addTrigger( const ITrigger& triggerToCopy );
 

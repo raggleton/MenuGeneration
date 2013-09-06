@@ -1,7 +1,8 @@
 #ifndef l1menu_tools_tools_h
 #define l1menu_tools_tools_h
 
-/** @file Miscellaneous functions that are useful.
+/** @file
+ * Miscellaneous functions that are useful.
  */
 
 #include <vector>

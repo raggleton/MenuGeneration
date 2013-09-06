@@ -1,0 +1,202 @@
+/** @file
+ * This file only contains doxygen documentation.
+ */
+
+/** @page L1Trigger_MenuGeneration Package L1Trigger/MenuGeneration
+ *
+ * @section subpages Sub-pages
+ *
+ * @subpage L1Trigger_MenuGeneration_implementingTriggers<br>
+ * @subpage L1Trigger_MenuGeneration_triggerMenuFormat<br>
+ * @subpage L1Trigger_MenuGeneration_oldCode<br>
+ *
+ * @section desc Description
+ *
+ * See @subpage L1Trigger_MenuGeneration_implementingTriggers for details on how to implement new triggers. If you're
+ * moving from the old code have a look at @subpage L1Trigger_MenuGeneration_oldCode.
+ *
+ * This package is for taking L1 Trigger DPG ntuples and analysing them to study L1 trigger menus. It includes
+ * code to calculate a total rate for a group of triggers (a TriggerMenu), and to fit the trigger thresholds
+ * to meet certain requirements such as total rate. All of the code is in the l1menu namespace.
+ *
+ * This whole package is based on code written by Brian Winer for the 2013 L1 Trigger Upgrade TDR menu studies.
+ *
+ * The code runs much quicker if you use a l1menu::ReducedSample because it only contains the information required
+ * for menu studies. In principle you could run all of the studies on a l1menu::FullSample (the class that loads the
+ * L1 DPG ntuples) but I've not tested it in a while. A typical workflow would be:
+ *
+ * - Decide on a trigger menu for your studies. See @subpage L1Trigger_MenuGeneration_triggerMenuFormat for how to format
+ * the input file. There will probably be some examples in the test directory.
+ * - Create a l1menu::ReducedSample from the L1 DPG ntuples and the trigger menu using the l1menuCreateReducedSample
+ * executable.
+ * - See what the total rate for your menu is with the l1menuCalculateRate executable.
+ * - Create rate plots for the individual triggers with l1menuCreateRatePlots executable.
+ * - (once I get it working) Fit the thresholds of your menu so that the total rate stays within a given total bandwidth
+ * with the l1menuFitMenu executable. This will be considerably quicker if you supply the file name of the rate plots
+ * you created with l1menuCreateRatePlots.
+ *
+ * @subsection interface Public interface
+ *
+ * It is foreseen that most people will just use the executables provided (see @ref modules below). Most of the code
+ * can be used externally however. I still need to document the details, but in the meantime if you have any questions
+ * email mark.grimes@bristol.ac.uk
+ *
+ * @subsection modules Modules
+ *
+ * No CMSSW modules, but creates the following executables:
+ *
+ * <table>
+ * <tr>
+ * 	<td> l1menuCalculateRate         </td>
+ * 	<td> Calculates the rate for a given trigger menu using a particular sample. </td>
+ * </tr>
+ * <tr>
+ * 	<td> l1menuCreateRatePlots       </td>
+ * 	<td> Creates plots of the trigger rates versus threshold. Can be used as optional input to l1menuFitMenu to speed
+ * 	     up processing. </td>
+ * </tr>
+ * <tr>
+ * 	<td> l1menuCreateReducedSample   </td>
+ * 	<td> Creates a l1menu::ReducedSample from a l1menu::FullSample. Analysis of ReducedSample is considerably faster
+ * 	     than for FullSample. A ReducedSample is created for a particular TriggerMenu, so further analysis is restricted
+ * 	     to using only triggers that were in the TriggerMenu when the sample was created. Trigger parameters other than
+ * 	     the thresholds (e.g. eta cuts) will also be fixed at this point.</td>
+ * </tr>
+ * <tr>
+ * 	<td> l1menuFitMenu               </td>
+ * 	<td> Given a sample TriggerMenu it will try and fluctuate the thresholds to get the total rate to fit within the
+ * 	     rate(s) requested, while keeping the bandwidth share amongst the triggers the same. </td>
+ * </tr>
+ * <tr>
+ * 	<td> l1menuShowReducedSampleMenu </td>
+ * 	<td> Prints the menu that was used to create a l1menu::ReducedSample during the l1menuCreateReducedSample process. </td>
+ * </tr>
+ * </table>
+ *
+ * All of them will print usage details if you pass "--help" as an option.
+ *
+ * @subsection tests Unit tests and examples
+ *
+ * There are some unit tests in the test directory. I'll document these here when I get around to it.
+ *
+ * @section status Status and planned development
+ *
+ * Finish the documentation, amongst other things.
+ *
+ * l1menuFitMenu currently doesn't converge (as of 06/Sep/2013) so that needs to be fixed.
+ *
+ * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+ * @date 06/Sep/2013
+ */
+
+/** @namespace l1menu::triggers
+ *
+ * @brief Namespace for all of the current ITrigger implementations.
+ *
+ * Note that a lot of the implementations don't use header files so aren't listed in the
+ * doxygen documentation. To see what triggers are available, either look in the
+ * src/triggers directory or use l1menu::TriggerTable::listTriggers() in the code to get
+ * a full list.
+ */
+
+/** @page L1Trigger_MenuGeneration_implementingTriggers Implementing new triggers
+ *
+ * Still writing this section.
+ *
+ * To implement a new trigger, subclass the l1menu::ITrigger interface. The important code
+ * will be in the ITrigger::apply method which acts on a l1menu::L1TriggerDPGEvent. From
+ * this you can get an instance of L1Analysis::L1AnalysisDataFormat which is the full
+ * information from the L1 DPG code. If that is implemented then all the code that creates
+ * ReducedSample and acts on a ReducedSample should work.
+ *
+ * If any of the thresholds aren't independent then there could be problems, email me.
+ *
+ * Triggers are intended to have version numbers so that new versions of a trigger can be
+ * tested alongside older versions. Start with version 0 for your first version and then
+ * work upwards in integer steps.
+ *
+ * If the data in L1Analysis::L1AnalysisDataFormat isn't correct for your trigger then
+ * some code in src/FullSample.cpp might need updating. FullSample takes the ntuple and
+ * fills the L1AnalysisDataFormat structure with the data, so if the data for your
+ * trigger is in a new branch then this process needs to be updated. Email me.
+ *
+ * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+ * @date 06/Sep/2013
+ */
+
+/** @page L1Trigger_MenuGeneration_triggerMenuFormat File format for trigger menus
+ *
+ * The code currently only works on ascii format files. There are plans for an xml format
+ * but that's further down the line. Here is Brian Winer's original description of the file
+ * format is below. Note that prescale is not currently implemented, but setting it to zero
+ * will cause the trigger to be ignored.
+ *
+ * For the trigger name (column 1), there needs to be a trigger registered in the trigger
+ * table with a matching name. That is, one of the triggers implemented in src/triggers
+ * has to return the same string from its ITrigger::name() method.
+ *
+ * Brian's description:
+ *
+ *   Column 1: (string) Name of algorithm. Should start with "L1_" and be less
+ *                      than 20 characters.
+ *
+ *   Column 2: (int)    Trigger bit for algorithm.  Not critical but keeps
+ *                      formating inline with older code.
+ *
+ *   Column 3: (int)    Prescale value.  Nominally would be "1". IF SET TO
+ *                      ZERO, THAT DISABLES THE ALGORITHM AND IT IS NOT USED
+ *                      IN THE MENU EVALUATION.
+ *
+ *   Column 4: (float)  Primary Et/Pt threshold
+ *   Column 5: (float)  Secondary Et/Pt threshold (if used)
+ *   Column 6: (float)  Third Et/Pt threshold (if used)
+ *   Column 7: (float)  Forth Et/Pt threshold (if used)
+ *
+ *   Column 8: (float)  Eta cut. Which object(s) this is applied to depends
+ *                      on the implementation in L1Menu2015.C.  Care must be
+ *                      taken when cutting on muons vs calorimeter objects.
+ *                      Muon cuts tend to be in true eta value, while cal cuts
+ *                      tend to be on eta **bin**.
+ *
+ *   Column 9: (int)    Minimum Muon Quality cut.
+ *
+ *   Column 10: (float) Allocated bandwidth.  This value is NOT used by
+ *                      L1Menu2015.C.  It is used by EvaluateL1Menu.C to
+ *                      determine new threshold values.
+ *
+ *   Column 11: (int)   Flag allowing bandwidth to be scaled up or down. Value
+ *                      =1 allows scaling. Value = 0 fixes the bandwidth. This
+ *                      value is NOT used by L1Menu2015.C.  It is used by
+ *                      EvaluateL1Menu.C to determine new threshold values.
+ *
+ *   Column 12: (int)   Flag allowing threshold to be locked. Value
+ *                      =1 locks threshold. Value = 0 will allow the
+ *                      theshold to be changed. This value is NOT used
+ *                      by L1Menu2015.C.  It is used by EvaluateL1Menu.C
+ *                      to determine new threshold values. In this case,
+ *                      if the threshold is locked, EvaluateL1Menu.C will
+ *                      not be allowed to change it.
+ *
+ */
+
+/** @page L1Trigger_MenuGeneration_oldCode Relation to the old code
+ *
+ * This page is for for developers interested in how the code relates to the previous version
+ * in the L1Menu2015.C and EvaluateL1Menu.C macros written by Brian Winer.
+ *
+ * (still writing this section)
+ *
+ * All of the boolean functions that say if a trigger has passed or failed are now in individual
+ * subclasses of l1menu::ITrigger which are in src/triggers. The actual contents of the functions
+ * have been copied almost verbatim into the ITrigger::apply() methods.
+ *
+ * The logic in L1Menu2015::fillDataStructure() has been implemented in src/FullSample.cpp in
+ * the l1menu::FullSamplePrivateMembers::fillDataStructure method. It currently only has the
+ * code corresponding to when selectDataInput is set to 22 implemented, because that's all I've
+ * needed so far. This will need to be updated if any other value of selectDataInput is required.
+ *
+ * The code that makes rate plots for each trigger is in l1menu::TriggerRatePlot, and code to
+ * create one of these for each trigger is in l1menu::MenuRatePlots.
+ *
+ * Code equivalent to what's in EvaluateL1Menu.C for fitting menus is in l1menu::MenuFitter.
+ */

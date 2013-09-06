@@ -7,6 +7,31 @@ import math
 
 #gROOT.Reset()
 
+class TriggerRateComparison(object):
+	"""
+	Class that will plot one or more trigger rate histograms into the TPad provided.
+	
+	Author Mark Grimes (mark.grimes@bristol.ac.uk)
+	Date 02/Sep/2013
+	"""
+	def __init__( self, pad, histograms ) :
+		# allow simple passing of a single histogram by converting to a list if it's not already
+		try: len(histograms)
+		except: histograms=[histograms]
+		
+		# make a copy of all of the histograms, rather than modifying the originals
+		self.histograms=[]
+		for histogram in histograms :
+			self.histograms.append( histogram.Clone() )
+			self.histograms[-1].SetDirectory( 0 ) # Make sure the copy isn't saved to disk
+		
+		self.pad=pad
+		self.pad.SetGrid()
+		self.pad.cd()
+		self.pad.SetLogy()
+		
+	def draw( self ) :
+		self.pad.cd()
 
 class TriggerRatePlot:
 	"""Class that takes two trigger rate histograms, plots them and plots the ratio of the two underneath"""
@@ -158,23 +183,21 @@ class TriggerRatePlot:
 
 
 
-newFile = ["New file",TFile.Open("/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/MarksStuff/MenuGeneration/reducedRateHistograms.root")]
-oldFile = ["Old file",TFile.Open("/home/xtaldaq/L1RateHist_14TeV100PU_25ns50bxMC_FallbackThr1_rates.root")]
+newFile = ["New file",TFile.Open("/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/rateHistograms.root")]
+oldFile = ["Old file",TFile.Open("/home/xtaldaq/MenuGenerationFiles/oldResults/L1RateHist_14TeV100PU_25ns50bxMC_FallbackThr1_rates-modRates.root")]
 plots = []
 
 #triggers = ["SingleEG"]
 triggers = ["SingleEG","SingleIsoEG","SingleMu",
-"SingleIsoMu","SingleTau","SingleIsoTau","isoEG_EG","isoMu_Mu","isoTau_Tau",
-"isoEG_Mu","isoMu_EG","isoEG_Tau","isoMu_Tau",
-"SingleJetC",
-"DoubleJet","QuadJetC","SixJet","SingleIsoEG_CJet",
+"SingleIsoMu","SingleIsoTau","isoEG_EG","isoMu_Mu","isoTau_Tau",
+"isoEG_Mu","isoMu_EG","isoMu_Tau","SingleJetC","DoubleJet",
 #"SingleMu_CJet",
-"SingleIsoEG_HTM","SingleMu_HTM","HTM","HTT"
+"SingleIsoEG_HTM","SingleMu_HTM","HTM","HTT",
+"QuadJetC","SixJet","SingleIsoEG_CJet","SingleTau","isoEG_Tau"
 ]
+
 for trigger in triggers:
 	plots.append( TriggerRatePlot( newFile, oldFile, trigger ) )
-	plots[-1].canvas.SaveAs( trigger+"_rateVsThreshold.pdf" )
-	#plots.append( TriggerRatePlot( data_8TeV_45PU_barrel, MC_8TeV_45PU_barrel, "h_"+trigger+"_byThreshold" ) )
-	#plots[-1].canvas.SaveAs( trigger+"_45PU_barrelOnly.pdf" )
+	#plots[-1].canvas.SaveAs( trigger+"_rateVsThreshold.pdf" )
 
 

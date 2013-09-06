@@ -18,6 +18,11 @@ namespace l1menu
 
 namespace l1menu
 {
+	/** @brief Abstract interface for any sample file format used for L1 menu studies.
+	 *
+	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+	 * @date sometime around June 2013
+	 */
 	class ISample
 	{
 	public:

@@ -1,7 +1,8 @@
 #ifndef l1menu_tools_stringManipulation_h
 #define l1menu_tools_stringManipulation_h
 
-/** @file Miscellaneous useful functions related to string manipulation.
+/** @file
+ * Miscellaneous useful functions related to string manipulation.
  */
 
 #include <vector>

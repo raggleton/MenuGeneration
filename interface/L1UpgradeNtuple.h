@@ -1,7 +1,9 @@
 #ifndef L1UpgradeNtuple_h
 #define L1UpgradeNtuple_h
 
-/** @file Copy of UserCode/L1TriggerUpgrade/macros/L1UpgradeNtuple.C with minor changes to fix memory leakes.
+/** @file
+ *
+ * @brief Copy of UserCode/L1TriggerUpgrade/macros/L1UpgradeNtuple.C with minor changes to fix memory leaks.
  *
  * I need to use L1UpgradeNtuple, but it's in the macros directory of UserCode/L1TriggerUpgrade so I
  * can't include it using the standard "use" directive in a buildfile. I was previously incorporating

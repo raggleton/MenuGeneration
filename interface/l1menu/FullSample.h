@@ -14,7 +14,16 @@ namespace l1menu
 
 namespace l1menu
 {
-
+	/** @brief An implementation of the ISample interface using the standard L1 DPG ntuples.
+	 *
+	 * It's called a "full" sample because it's not the "reduced" sample. It loads up standard
+	 * L1 DPG ntuples for use in menu studies. This is the most low-level or "original" way
+	 * of working because it runs straight off the ntuples. The other implementations of
+	 * ISample will use data that in some way originally came from a FullSample.
+	 *
+	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+	 * @date sometime around May 2013
+	 */
 	class FullSample : public l1menu::ISample
 	{
 	public:

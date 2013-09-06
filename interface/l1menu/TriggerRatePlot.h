@@ -93,8 +93,8 @@ namespace l1menu
 		 * any scaled parameters then it will check the supplied trigger to see if the scaling to the
 		 * versus parameter is the same instead of checking the absolute value.
 		 *
-		 * @parameter   trigger                The trigger to check against.
-		 * @parameter   matchTriggerVersion    If this is set to false, then it doesn't bother checking that the
+		 * @param[in]   trigger                The trigger to check against.
+		 * @param[in]   matchTriggerVersion    If this is set to false, then it doesn't bother checking that the
 		 *                                     supplied trigger has the same version as the trigger this plot was
 		 *                                     made with.
 		 * @return                             True if this plot was created with an equivalent trigger.

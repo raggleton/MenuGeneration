@@ -14,7 +14,15 @@ namespace l1menu
 
 namespace l1menu
 {
-	/** @brief A singleton that can create instances of a given type and version.
+	/** @brief A singleton that can create ITrigger instances of a given type and version.
+	 *
+	 * This is a global store for all available triggers. Code in each implementation of ITrigger
+	 * will register the trigger in the TriggerTable, and then instances can be created by calls to
+	 * getTrigger. Triggers have version numbers, with higher numbers considered more recent. If no
+	 * version is specified when requesting a new trigger the most recent implementation is supplied.
+	 *
+	 * Suggested histogram binning for any trigger parameters can also be stored and retrieved to
+	 * aid in plotting.
 	 *
 	 * Uses the Meyer's singleton pattern, the instance can be retrieved with the instance() static
 	 * method.
