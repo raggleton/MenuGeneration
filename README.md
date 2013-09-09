@@ -8,25 +8,32 @@ To include in a CMSSW build (assuming you have initialised it for git somehow):
     cd $CMSSW_BASE/src
     git submodule add git@github.com:kknb1056/MenuGeneration.git L1Trigger/MenuGeneration
     
-This will put the package in L1Trigger/MenuGeneration. Also requires UserCode/L1TriggerDPG, but as far as I can tell that hasn't been transferred over to git. So you need to use a version from CVS:
+This will put the package in L1Trigger/MenuGeneration. You will need to have git setup for github, follow the instructions from the cms-sw page if you haven't done so already.
+
+*Dependencies*
+
+The package requires some L1 Trigger DPG packages that were always kept in UserCode for some reason. As such they haven't been transferred over to git and have to be downloaded with cvs:
 
     cvs co UserCode/L1TriggerDPG
+    cvs co UserCode/L1TriggerUpgrade
+    cvs co -d L1Trigger/UCT2015 UserCode/dasu/L1Trigger/UCT2015
 
 There is some documentation in doc/menuGenerationDocumentation.doc which doxygen can make into a webpage. To do that in CMSSW you also need the Documentation/ReferenceManualScripts package in $CMSSW_BASE/src or it won't work, then just execute "scram b doc". The files will be put in $CMSSW_BASE/doc.
 
 *Instructions from scratch*
-I'm having issues getting "git cms-addpkg" to work, so full instructions from scratch using cvs where necessary instead:
 
     scram project CMSSW CMSSW_6_0_1
     cd CMSSW_6_0_1/src
     cmsenv
-    git init
+    # This next command gives an error for me but still seems to work
+    git cms-addpkg Documentation/ReferenceManualScripts
     git submodule add git@github.com:kknb1056/MenuGeneration.git L1Trigger/MenuGeneration
     cvs co UserCode/L1TriggerDPG
-    cvs co Documentation/ReferenceManualScripts
+    cvs co UserCode/L1TriggerUpgrade
+    cvs co -d L1Trigger/UCT2015 UserCode/dasu/L1Trigger/UCT2015
     scram b -j 6
     scram b doc
     
-This will build the package and create the documentation. Note that L1Trigger/MenuGeneration is not particularly dependant on the CMSSW version. The version of UserCode/L1TriggerDPG is more important. To view the documentation:
+This will build the package and create the documentation. Note that L1Trigger/MenuGeneration is not particularly dependant on the CMSSW version. The versions of the L1 DPG pacakages is more important. To view the documentation:
 
-    firefox $CMSSW_BASE/doc/html
+    firefox $CMSSW_BASE/doc/html/L1Trigger_MenuGeneration.html
