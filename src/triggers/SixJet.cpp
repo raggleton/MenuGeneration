@@ -43,8 +43,6 @@ namespace l1menu
 				l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
 				SixJet_v0 tempTriggerInstance;
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "threshold1", 100, 0, 70 );
-				// Use same binning as L1Menu2015
-				//triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "threshold1", 100, -2, 402 );
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "threshold2", 100, 0, 50 );
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "threshold3", 100, 0, 30 );
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "threshold4", 100, 0, 15 );
