@@ -18,7 +18,7 @@ The package requires some L1 Trigger DPG packages that were always kept in UserC
     cvs co UserCode/L1TriggerUpgrade
     cvs co -d L1Trigger/UCT2015 UserCode/dasu/L1Trigger/UCT2015
 
-* Usage *
+*Usage*
 
 There is some documentation in doc/menuGenerationDocumentation.doc which doxygen can make into a webpage. To do that in CMSSW you also need the Documentation/ReferenceManualScripts package in $CMSSW_BASE/src or it won't work, then just execute "scram b doc". The files will be put in $CMSSW_BASE/doc.
 
