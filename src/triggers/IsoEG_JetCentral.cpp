@@ -42,6 +42,22 @@ namespace l1menu
 			float leg2regionCut_;
 		}; // end of the IsoEG_JetCentral base class
 
+		/** @brief Second version of the IsoEG_JetCentral trigger.
+		 *
+		 * An error was spotted in the logic that checks if the jet is the same object as the electron.
+		 * The old logic required that both the eta and phi were different, whereas only one needs to
+		 * be different for them to be different objects.
+		 *
+		 * @author as for v0, but logic error spotted by Brian Winer's unnamed student.
+		 * @date 09/Sep/2013
+		 */
+		class IsoEG_JetCentral_v1 : public IsoEG_JetCentral
+		{
+		public:
+			virtual unsigned int version() const;
+			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+		}; // end of version 0 class
+
 		/** @brief First version of the IsoEG_JetCentral trigger.
 		 *
 		 * @author probably Brian Winer
@@ -62,15 +78,18 @@ namespace l1menu
 		 * at program startup. The function takes no parameters and returns void. In this case I'm
 		 * giving it a lambda function.
 		 */
-		REGISTER_TRIGGER_AND_CUSTOMISE( IsoEG_JetCentral_v0,
+		REGISTER_TRIGGER_AND_CUSTOMISE( IsoEG_JetCentral_v1,
 			[]() // Use a lambda function to customise rather than creating a named function that never gets used again.
 			{
 				l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
-				IsoEG_JetCentral_v0 tempTriggerInstance;
+				IsoEG_JetCentral_v1 tempTriggerInstance;
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "leg1threshold1", 100, 0, 100 );
 				triggerTable.registerSuggestedBinning( tempTriggerInstance.name(), "leg2threshold1", 100, 0, 100 );
 			} // End of customisation lambda function
 		) // End of REGISTER_TRIGGER_AND_CUSTOMISE macro call
+
+		// Don't need to register suggested binning for this version, because the binning above will be used for all versions.
+		REGISTER_TRIGGER( IsoEG_JetCentral_v0 )
 
 
 	} // end of namespace triggers
@@ -86,6 +105,60 @@ namespace l1menu
 //----------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
 
+bool l1menu::triggers::IsoEG_JetCentral_v1::apply( const l1menu::L1TriggerDPGEvent& event ) const
+{
+	const L1Analysis::L1AnalysisDataFormat& analysisDataFormat=event.rawEvent();
+	const bool* PhysicsBits=event.physicsBits();
+
+	bool raw = PhysicsBits[0];   // ZeroBias
+	if (! raw) return false;
+
+	bool jet=false;
+	bool eg = false;
+	bool ok = false;
+
+	int Nj = analysisDataFormat.Njet ;
+
+	int Nele = analysisDataFormat.Nele;
+	for (int ue=0; ue < Nele; ue++) {
+		int bx = analysisDataFormat.Bxel[ue];
+		if (bx != 0 || !analysisDataFormat.Isoel[ue]) continue;
+		float eta = analysisDataFormat.Etael[ue];
+		if (eta < leg1regionCut_ || eta > 21.-leg1regionCut_) continue;  // eta = 5 - 16
+		float rank = analysisDataFormat.Etel[ue];    // the rank of the electron
+		float pt = rank ;
+		if (pt >= leg1threshold1_){
+
+			eg = true;
+
+			for (int uj=0; uj < Nj; uj++) {
+				int bxj = analysisDataFormat.Bxjet[uj];
+				if (bxj != 0) continue;
+				bool isFwdJet = analysisDataFormat.Fwdjet[uj];
+				if (isFwdJet) continue;
+				bool isTauJet = analysisDataFormat.Taujet[uj];
+				if (isTauJet) continue;
+				float rankj = analysisDataFormat.Etjet[uj];
+				float ptj = rankj; //CorrectedL1JetPtByGCTregions(analysisDataFormat.Etajet[uj],rank*4.,theL1JetCorrection);
+
+				if (analysisDataFormat.Etajet[uj] < leg2regionCut_ || analysisDataFormat.Etajet[uj] > 21.-leg2regionCut_) continue;
+				if (ptj >= leg2threshold1_ &&
+					!(analysisDataFormat.Etajet[uj]==analysisDataFormat.Etael[ue] &&
+					  analysisDataFormat.Phijet[uj]==analysisDataFormat.Phiel[ue]) ) jet = true;
+			}
+
+			ok = eg && jet;
+		} // if good EG
+	}  // end loop over EM objects
+
+	return ok;
+}
+
+
+unsigned int l1menu::triggers::IsoEG_JetCentral_v1::version() const
+{
+	return 1;
+}
 
 bool l1menu::triggers::IsoEG_JetCentral_v0::apply( const l1menu::L1TriggerDPGEvent& event ) const
 {
@@ -111,25 +184,25 @@ bool l1menu::triggers::IsoEG_JetCentral_v0::apply( const l1menu::L1TriggerDPGEve
 		float pt = rank ;
 		if (pt >= leg1threshold1_){
 
-		    eg = true;
+			eg = true;
 
-	   	 for (int uj=0; uj < Nj; uj++) {
-				  int bxj = analysisDataFormat.Bxjet[uj];
-				  if (bxj != 0) continue;
-				  bool isFwdJet = analysisDataFormat.Fwdjet[uj];
-				  if (isFwdJet) continue;
-				  bool isTauJet = analysisDataFormat.Taujet[uj];
-				  if (isTauJet) continue;
-				  float rankj = analysisDataFormat.Etjet[uj];
-				  float ptj = rankj; //CorrectedL1JetPtByGCTregions(analysisDataFormat.Etajet[uj],rank*4.,theL1JetCorrection);
+			for (int uj=0; uj < Nj; uj++) {
+				int bxj = analysisDataFormat.Bxjet[uj];
+				if (bxj != 0) continue;
+				bool isFwdJet = analysisDataFormat.Fwdjet[uj];
+				if (isFwdJet) continue;
+				bool isTauJet = analysisDataFormat.Taujet[uj];
+				if (isTauJet) continue;
+				float rankj = analysisDataFormat.Etjet[uj];
+				float ptj = rankj; //CorrectedL1JetPtByGCTregions(analysisDataFormat.Etajet[uj],rank*4.,theL1JetCorrection);
 
-              if (analysisDataFormat.Etajet[uj] < leg2regionCut_ || analysisDataFormat.Etajet[uj] > 21.-leg2regionCut_) continue;
-				  if (ptj >= leg2threshold1_ &&
-				     (analysisDataFormat.Etajet[uj]!=analysisDataFormat.Etael[ue]) &&
-					  (analysisDataFormat.Phijet[uj]!=analysisDataFormat.Phiel[ue]) ) jet = true;
-	   	 }
+				if (analysisDataFormat.Etajet[uj] < leg2regionCut_ || analysisDataFormat.Etajet[uj] > 21.-leg2regionCut_) continue;
+				if (ptj >= leg2threshold1_ &&
+					(analysisDataFormat.Etajet[uj]!=analysisDataFormat.Etael[ue]) &&
+					(analysisDataFormat.Phijet[uj]!=analysisDataFormat.Phiel[ue]) ) jet = true;
+			}
 
-		    ok = eg && jet;
+			ok = eg && jet;
 		} // if good EG
 	}  // end loop over EM objects
 
