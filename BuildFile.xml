@@ -3,6 +3,7 @@
 <use name="root"/>
 <use name="protobuf"/>
 <use name="UserCode/L1TriggerDPG"/>
+<use name="UserCode/L1TriggerUpgrade"/>
 <include_path path="interface"/>
 <export>
 	<lib name="L1TriggerMenuGeneration"/>

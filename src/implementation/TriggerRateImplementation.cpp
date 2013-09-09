@@ -10,7 +10,16 @@ l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( co
 	pTrigger_=std::move( l1menu::TriggerTable::instance().copyTrigger(trigger) );
 }
 
-l1menu::implementation::TriggerRateImplementation& l1menu::implementation::TriggerRateImplementation::operator=( TriggerRateImplementation&& otherTriggerRate )
+l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept
+	: pTrigger_( std::move(otherTriggerRate.pTrigger_) ),
+	  weightOfEventsPassingThisTrigger_(otherTriggerRate.weightOfEventsPassingThisTrigger_),
+	  weightOfEventsOnlyPassingThisTrigger_(otherTriggerRate.weightOfEventsOnlyPassingThisTrigger_),
+	  menuRate_(otherTriggerRate.menuRate_)
+{
+	// No operation besides the initialiser list
+}
+
+l1menu::implementation::TriggerRateImplementation& l1menu::implementation::TriggerRateImplementation::operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept
 {
 	pTrigger_=std::move( otherTriggerRate.pTrigger_ );
 	weightOfEventsPassingThisTrigger_=otherTriggerRate.weightOfEventsPassingThisTrigger_;

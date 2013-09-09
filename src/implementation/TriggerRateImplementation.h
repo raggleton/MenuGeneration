@@ -31,7 +31,8 @@ namespace l1menu
 		{
 		public:
 			TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate );
-			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ); // Move assignment
+			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move constructor
+			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move assignment
 			virtual ~TriggerRateImplementation();
 
 			// Methods required by the l1menu::ITriggerRate interface
