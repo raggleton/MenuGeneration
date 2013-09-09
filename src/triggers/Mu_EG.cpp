@@ -8,7 +8,7 @@ namespace l1menu
 	namespace triggers
 	{
 
-		/** @brief Cross trigger of the SingleIsoMuEta and SingleTauJet triggers.
+		/** @brief Cross trigger of the SingleIsoMuEta and SingleEGEta triggers.
 		 *
 		 * Combines the following triggers: <br/>
 		 * L1_SingleIsoMu version 0 <br/>
