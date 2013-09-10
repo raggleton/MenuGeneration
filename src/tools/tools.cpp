@@ -17,6 +17,7 @@
 #include "l1menu/FullSample.h"
 #include "l1menu/ReducedSample.h"
 
+
 std::vector<std::string> l1menu::tools::getThresholdNames( const l1menu::ITrigger& trigger )
 {
 	std::vector<std::string> returnValue;
@@ -418,32 +419,26 @@ std::unique_ptr<l1menu::ISample> l1menu::tools::loadSample( const std::string& f
 	inputFile.get( buffer, bufferSize );
 	inputFile.close();
 
-	if( std::string(buffer)=="l1menuReducedSample" )
-	{
-		std::cout << "Loading as ReducedSample" << std::endl;
-		return std::unique_ptr<l1menu::ISample>( new l1menu::ReducedSample(filename) );
-	}
+	if( std::string(buffer)=="l1menuReducedSample" ) return std::unique_ptr<l1menu::ISample>( new l1menu::ReducedSample(filename) );
 	else
 	{
 		// If it's not a ReducedSample then the only other ISample implementation at the
 		// moment is a FullSample.
-		std::unique_ptr<l1menu::ISample> pReturnValue( new l1menu::FullSample );
+		std::unique_ptr<l1menu::FullSample> pReturnValue( new l1menu::FullSample );
 
 		if( std::string(buffer).substr(0,4)=="root" )
 		{
 			// File is a root file, so assume it is one of the L1 DPG ntuples and try and load it
 			// into the FullSample.
-			std::cout << "Loading root file as FullSample" << std::endl;
 			pReturnValue->loadFile( filename );
-			return pReturnValue;
+			return std::unique_ptr<l1menu::ISample>( pReturnValue.release() );
 		}
 		else
 		{
 			// Assume the file is a list of filenames of L1 DPG ntuples.
 			// TODO Do some checking to see if the characters I've read so far are valid filepath characters.
-			std::cout << "Loading list file as FullSample" << std::endl;
-			pReturnValue.loadFilesFromList( filename );
-			return pReturnValue;
+			pReturnValue->loadFilesFromList( filename );
+			return std::unique_ptr<l1menu::ISample>( pReturnValue.release() );
 		}
 	}
 }
