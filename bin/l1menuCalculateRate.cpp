@@ -1,8 +1,6 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <TSystem.h>
-#include <FWCore/FWLite/interface/AutoLibraryLoader.h>
 #include <TFile.h>
 #include "l1menu/ISample.h"
 #include "l1menu/IMenuRate.h"
@@ -11,9 +9,6 @@
 
 int main( int argc, char* argv[] )
 {
-	gSystem->Load("libFWCoreFWLite.so");
-	AutoLibraryLoader::enable();
-
 	if( argc!=3 )
 	{
 		std::string executableName=argv[0];

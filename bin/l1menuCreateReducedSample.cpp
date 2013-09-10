@@ -1,5 +1,3 @@
-#include "TSystem.h"
-#include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "l1menu/FullSample.h"
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/ReducedSample.h"
@@ -11,9 +9,6 @@
 
 int main( int argc, char* argv[] )
 {
-	gSystem->Load("libFWCoreFWLite.so");
-	AutoLibraryLoader::enable();
-
 	std::string outputFilename="reducedSample.proto";
 
 	if( argc<3 )

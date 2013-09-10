@@ -1,8 +1,6 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <TSystem.h>
-#include <FWCore/FWLite/interface/AutoLibraryLoader.h>
 #include <TFile.h>
 #include "l1menu/ISample.h"
 #include "l1menu/MenuRatePlots.h"
@@ -28,9 +26,6 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 
 int main( int argc, char* argv[] )
 {
-//	gSystem->Load("libFWCoreFWLite.so");
-//	AutoLibraryLoader::enable();
-
 	std::string sampleFilename;
 	std::string menuFilename;
 	std::string outputFilename="rateHistograms.root"; // default value if not specified on the command line

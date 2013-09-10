@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include <TSystem.h>
+#include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 
 #include "l1menu/L1TriggerDPGEvent.h"
 #include "l1menu/ICachedTrigger.h"
@@ -47,13 +48,15 @@ namespace l1menu
 		static const size_t ETABINS;
 		static const double ETABIN[];
 
+		static bool libraryLoaderInitiated; ///< @brief Flag to say if libFWCoreFWLite.so has been loaded and the AutoLibraryLoader enabled
+
 		double degree( double radian );
 		int phiINjetCoord( double phi );
 		int etaINjetCoord( double eta );
 		double calculateHTT( const L1Analysis::L1AnalysisDataFormat& event );
 		double calculateHTM( const L1Analysis::L1AnalysisDataFormat& event );
 	public:
-		FullSamplePrivateMembers( FullSample* pThisObject ) : currentEvent(*pThisObject), sumOfWeights(-1), eventRate(1) {}
+		FullSamplePrivateMembers( FullSample* pThisObject );
 		void fillDataStructure( int selectDataInput );
 		void fillL1Bits();
 		L1UpgradeNtuple inputNtuple;
@@ -67,7 +70,18 @@ const size_t l1menu::FullSamplePrivateMembers::PHIBINS=18;
 const double l1menu::FullSamplePrivateMembers::PHIBIN[]={10,30,50,70,90,110,130,150,170,190,210,230,250,270,290,310,330,350};
 const size_t l1menu::FullSamplePrivateMembers::ETABINS=23;
 const double l1menu::FullSamplePrivateMembers::ETABIN[]={-5.,-4.5,-4.,-3.5,-3.,-2.172,-1.74,-1.392,-1.044,-0.696,-0.348,0,0.348,0.696,1.044,1.392,1.74,2.172,3.,3.5,4.,4.5,5.};
+bool l1menu::FullSamplePrivateMembers::libraryLoaderInitiated=false;
 
+l1menu::FullSamplePrivateMembers::FullSamplePrivateMembers( FullSample* pThisObject )
+	: currentEvent(*pThisObject), sumOfWeights(-1), eventRate(1)
+{
+	if( !libraryLoaderInitiated )
+	{
+		gSystem->Load("libFWCoreFWLite.so");
+		AutoLibraryLoader::enable();
+		libraryLoaderInitiated=true;
+	}
+}
 
 double l1menu::FullSamplePrivateMembers::degree( double radian )
 {

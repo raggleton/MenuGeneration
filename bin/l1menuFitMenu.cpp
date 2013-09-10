@@ -1,8 +1,6 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <TSystem.h>
-#include <FWCore/FWLite/interface/AutoLibraryLoader.h>
 #include <TFile.h>
 #include "l1menu/ISample.h"
 #include "l1menu/IMenuRate.h"
@@ -30,9 +28,6 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 
 int main( int argc, char* argv[] )
 {
-//	gSystem->Load("libFWCoreFWLite.so");
-//	AutoLibraryLoader::enable();
-
 	std::string sampleFilename;
 	std::string menuFilename;
 	std::string ratePlotsFilename; // Filename for rateplots. This is optional and can be empty.
