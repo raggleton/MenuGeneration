@@ -407,18 +407,45 @@ void l1menu::tools::setBinningToL1Menu2015Values()
 
 std::unique_ptr<l1menu::ISample> l1menu::tools::loadSample( const std::string& filename )
 {
-	std::unique_ptr<l1menu::ISample> pReturnValue;
-
 	// Open the file, read enough of the start to determine what kind of file
 	// it is, then close it.
-	std::ifstream inputFile( filename );
+	std::ifstream inputFile( filename, std::ios_base::binary );
 	if( !inputFile.is_open() ) throw std::runtime_error( "The file does not exist or could not be opened" );
-	// TODO - The checking of what file type it is
+
+	// Look at the first few characters and see if they match some of the file formats
+	const size_t bufferSize=20;
+	char buffer[bufferSize];
+	inputFile.get( buffer, bufferSize );
 	inputFile.close();
 
-	pReturnValue.reset( new l1menu::ReducedSample(filename) );
+	if( std::string(buffer)=="l1menuReducedSample" )
+	{
+		std::cout << "Loading as ReducedSample" << std::endl;
+		return std::unique_ptr<l1menu::ISample>( new l1menu::ReducedSample(filename) );
+	}
+	else
+	{
+		// If it's not a ReducedSample then the only other ISample implementation at the
+		// moment is a FullSample.
+		std::unique_ptr<l1menu::ISample> pReturnValue( new l1menu::FullSample );
 
-	return pReturnValue;
+		if( std::string(buffer).substr(0,4)=="root" )
+		{
+			// File is a root file, so assume it is one of the L1 DPG ntuples and try and load it
+			// into the FullSample.
+			std::cout << "Loading root file as FullSample" << std::endl;
+			pReturnValue->loadFile( filename );
+			return pReturnValue;
+		}
+		else
+		{
+			// Assume the file is a list of filenames of L1 DPG ntuples.
+			// TODO Do some checking to see if the characters I've read so far are valid filepath characters.
+			std::cout << "Loading list file as FullSample" << std::endl;
+			pReturnValue.loadFilesFromList( filename );
+			return pReturnValue;
+		}
+	}
 }
 
 std::pair<float,float> l1menu::tools::simpleLinearFit( const std::vector< std::pair<float,float> >& dataPoints )
