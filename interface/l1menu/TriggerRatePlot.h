@@ -118,6 +118,15 @@ namespace l1menu
 		 * Note that the pointer is still held so that further operations on this object are still valid,
 		 * just that the TH1 won't be deleted when the instance goes out of scope. */
 		TH1* relinquishOwnershipOfPlot();
+
+		/** @brief Loops over the provided TriggerRatePlot instances and adds the sample to them.
+		 *
+		 * This is purely for performance reasons, because there's some logic in here that can be considerably
+		 * faster than looping over the provided vector and calling addSample() on each one. FullSample needs
+		 * to do a lot of work to read a new event, so reading each event for each TriggerRatePlot is much
+		 * slower than reading the event once and passing it to each TriggerRatePlot.
+		 */
+		static void addSample( const l1menu::ISample& sample, std::vector<TriggerRatePlot>& ratePlots );
 	protected:
 		void initiate( const l1menu::ITrigger& trigger, const std::vector<std::string>& scaledParameters );
 		std::unique_ptr<l1menu::ITrigger> pTrigger_;

@@ -127,11 +127,10 @@ void l1menu::MenuRatePlots::addEvent( const l1menu::IEvent& event )
 
 void l1menu::MenuRatePlots::addSample( const l1menu::ISample& sample )
 {
-	// Loop over each of the TriggerRatePlots and add the sample to each of them.
-	for( auto& ratePlot : triggerPlots_ )
-	{
-		ratePlot.addSample( sample );
-	}
+	// Rather than looping over the TriggerRatePlots and calling addSample on each one,
+	// I'll use this static TriggerRatePlot method which does the same job but can be
+	// much faster.
+	l1menu::TriggerRatePlot::addSample( sample, triggerPlots_ );
 }
 
 void l1menu::MenuRatePlots::setDirectory( TDirectory* pDirectory )

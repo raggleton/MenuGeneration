@@ -407,3 +407,31 @@ TH1* l1menu::TriggerRatePlot::relinquishOwnershipOfPlot()
 	histogramOwnedByMe_=false;
 	return pHistogram_.get();
 }
+
+void l1menu::TriggerRatePlot::addSample( const l1menu::ISample& sample, std::vector<TriggerRatePlot>& ratePlots )
+{
+	float weightPerEvent=sample.eventRate()/sample.sumOfWeights();
+
+	// Create cached triggers for each of the rate plots, which depending on the concrete type
+	// of the ISample may or may not significantly increase the speed at which this next loop happens.
+	std::vector< std::unique_ptr<l1menu::ICachedTrigger> > cachedTriggers;
+	for( const auto& ratePlot : ratePlots ) cachedTriggers.push_back( sample.createCachedTrigger( *ratePlot.pTrigger_ ) );
+
+	// Now instead of calling addSample() for each TriggerRatePlot individually, get each IEvent from the sample
+	// and pass that to each rate plot. This is because (depending on the ISample concrete type) getting the
+	// IEvent can be computationally expensive.
+	std::vector< std::unique_ptr<l1menu::ICachedTrigger> >::const_iterator iTrigger;
+	std::vector<TriggerRatePlot>::iterator iRatePlot;
+	for( size_t eventNumber=0; eventNumber<sample.numberOfEvents(); ++eventNumber )
+	{
+		const l1menu::IEvent& event=sample.getEvent(eventNumber);
+
+		for( iTrigger=cachedTriggers.begin(), iRatePlot=ratePlots.begin();
+			iTrigger!=cachedTriggers.end() && iRatePlot!=ratePlots.end();
+			++iTrigger, ++iRatePlot )
+		{
+			iRatePlot->addEvent( event, *iTrigger, weightPerEvent );
+		}
+	} // end of loop over events
+
+}
