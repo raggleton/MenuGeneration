@@ -156,10 +156,10 @@ class TriggerRatePlot:
 		histogram=file.Get( "h_"+triggerName+"_byThreshold" )
 		if histogram != None : return histogram
 		
-		histogram=file.Get( "L1_"+trigger+"_v_allThresholdsScaled" )
+		histogram=file.Get( "L1_"+triggerName+"_v_allThresholdsScaled" )
 		if histogram != None : return histogram
 		
-		histogram=file.Get( "L1_"+trigger+"_v_threshold1" )
+		histogram=file.Get( "L1_"+triggerName+"_v_threshold1" )
 		if histogram != None : return histogram
 		
 		print "Couldn't load file for trigger "+triggerName
