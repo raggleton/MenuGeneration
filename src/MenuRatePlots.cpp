@@ -1,6 +1,7 @@
 #include "l1menu/MenuRatePlots.h"
 
 #include <sstream>
+#include <algorithm>
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/TriggerRatePlot.h"
@@ -18,6 +19,9 @@ l1menu::MenuRatePlots::MenuRatePlots( const l1menu::TriggerMenu& triggerMenu, TD
 	// This is always useful
 	const l1menu::TriggerTable& triggerTable=l1menu::TriggerTable::instance();
 
+	std::stringstream stringConverter; // Used to convert numbers into to strings
+	std::vector<std::string> usedNames; // A list of all the names I've already used for plots, so that I can make sure all names are unique
+
 	// Loop over each of the triggers in the menu, book a histogram for it and then create
 	// a l1menu::TriggerRate plot for it.
 	for( size_t triggerNumber=0; triggerNumber<triggerMenu.numberOfTriggers(); ++triggerNumber )
@@ -25,6 +29,22 @@ l1menu::MenuRatePlots::MenuRatePlots( const l1menu::TriggerMenu& triggerMenu, TD
 		std::unique_ptr<l1menu::ITrigger> pTrigger=triggerMenu.getTriggerCopy(triggerNumber);
 		// Figure out the parameter names of all the possible thresholds.
 		const std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames(*pTrigger);
+
+		// I could have more than one trigger of the same type with different parameters, so I need to
+		// figure out different names for each of the plots. Keep appending an increasing integer to the
+		// end of the trigger name until I find an unused name.
+		std::string triggerNameForPlot=pTrigger->name();
+		for( size_t index=2; true; ++index )
+		{
+			if( std::find( usedNames.begin(), usedNames.end(), triggerNameForPlot )==usedNames.end() )
+			{
+				usedNames.push_back( triggerNameForPlot );
+				break;
+			}
+			stringConverter.str("");
+			stringConverter << pTrigger->name() << index;
+			triggerNameForPlot=stringConverter.str();
+		}
 
 		//
 		// If there is more than one threshold add a plot where all of the thresholds are scaled together.
@@ -43,7 +63,7 @@ l1menu::MenuRatePlots::MenuRatePlots( const l1menu::TriggerMenu& triggerMenu, TD
 			}
 			catch( std::exception& error) { /* Do nothing. If no binning suggestions have been set for this trigger use the defaults I set above. */ }
 
-			std::unique_ptr<TH1> pHistogram( new TH1F( (pTrigger->name()+"_v_allThresholdsScaled").c_str(), "This title gets changed by TriggerRatePlot anyway", numberOfBins, lowerEdge, upperEdge ) );
+			std::unique_ptr<TH1> pHistogram( new TH1F( (triggerNameForPlot+"_v_allThresholdsScaled").c_str(), "This title gets changed by TriggerRatePlot anyway", numberOfBins, lowerEdge, upperEdge ) );
 			pHistogram->SetDirectory( pDirectory );
 			// Passing thresholdNames tells the TriggerRatePlot to scale all parameters named in that
 			// vector along with mainThreshold.
@@ -73,7 +93,7 @@ l1menu::MenuRatePlots::MenuRatePlots( const l1menu::TriggerMenu& triggerMenu, TD
 			}
 			catch( std::exception& error) { /* Do nothing. If no binning suggestions have been set for this trigger use the defaults I set above. */ }
 
-			std::unique_ptr<TH1> pHistogram( new TH1F( (pTrigger->name()+"_v_"+(*iThresholdName)).c_str(), "This title gets changed by TriggerRatePlot anyway", numberOfBins, lowerEdge, upperEdge ) );
+			std::unique_ptr<TH1> pHistogram( new TH1F( (triggerNameForPlot+"_v_"+(*iThresholdName)).c_str(), "This title gets changed by TriggerRatePlot anyway", numberOfBins, lowerEdge, upperEdge ) );
 			pHistogram->SetDirectory( pDirectory );
 			triggerPlots_.push_back( std::move(l1menu::TriggerRatePlot(*pTrigger,std::move(pHistogram),*iThresholdName)) );
 		}
