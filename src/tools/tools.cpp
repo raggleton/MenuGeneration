@@ -88,6 +88,32 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 	std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( trigger );
 	std::map<std::string,float> tightestPossibleThresholds;
 
+	//
+	// If the thresholds are correlated, then I can't modify them individually to see if an event will pass
+	// and I'll have to scale them all together. So if they're correlated figure out what the scalings need
+	// to be.
+	//
+	std::vector< std::pair<float*,float> > otherParameterScalings; // "first" is a pointer to the parameter, "second" is the amount to scale it
+	if( trigger.thresholdsAreCorrelated() )
+	{
+		// Use the first threshold as the one to vary
+		std::string versusParameter=thresholdNames[0];
+		float parameterValue=trigger.parameter(versusParameter); // Take a copy to save constantly looking it up
+
+		// Then scale all of the other ones against that
+		for( const auto& parameterToScale : thresholdNames )
+		{
+			if( parameterToScale!=versusParameter )
+			{
+				otherParameterScalings.push_back( std::make_pair( &trigger.parameter(parameterToScale), trigger.parameter(parameterToScale)/parameterValue ) );
+			}
+		}
+
+		// Now clear the list of tresholdNames of everything except the main one.
+		// Everything else will be scaled against this.
+		thresholdNames.resize(1);
+	}
+
 	// First set all of the thresholds to zero
 	for( const auto& thresholdName : thresholdNames ) trigger.parameter(thresholdName)=0;
 
@@ -111,9 +137,13 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 
 
 		threshold=lowThreshold;
+		// Scale any other parameters required. There will only be something in this vector if the trigger thresholds are correlated.
+		for( const auto& parameterScalingPair : otherParameterScalings ) *(parameterScalingPair.first)=parameterScalingPair.second*threshold;
+		// Test the trigger
 		bool lowTest=trigger.apply( event );
 
 		threshold=highThreshold;
+		for( const auto& parameterScalingPair : otherParameterScalings ) *(parameterScalingPair.first)=parameterScalingPair.second*threshold;
 		bool highTest=trigger.apply( event );
 
 		if( lowTest==highTest ) throw std::runtime_error( "l1menu::tools::setTriggerThresholdsAsTightAsPossible() - couldn't find a set of thresholds to pass the given event.");
@@ -122,6 +152,7 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 		while( highThreshold-lowThreshold > tolerance )
 		{
 			threshold=(highThreshold+lowThreshold)/2;
+			for( const auto& parameterScalingPair : otherParameterScalings ) *(parameterScalingPair.first)=parameterScalingPair.second*threshold;
 			bool midTest=trigger.apply(event);
 
 			if( lowTest==midTest && highTest!=midTest ) lowThreshold=threshold;
@@ -142,6 +173,8 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 	for( const auto& parameterValuePair : tightestPossibleThresholds )
 	{
 		trigger.parameter(parameterValuePair.first)=parameterValuePair.second;
+		// And also set any of the scaled parameters to reflect what they should be at this value
+		for( const auto& parameterScalingPair : otherParameterScalings ) *(parameterScalingPair.first)=parameterScalingPair.second*parameterValuePair.second;
 	}
 }
 
