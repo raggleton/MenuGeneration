@@ -59,6 +59,10 @@ bool l1menu::triggers::SingleIsoEGEta_v0::apply( const l1menu::L1TriggerDPGEvent
 	return ok;
 }
 
+bool l1menu::triggers::SingleIsoEGEta_v0::thresholdsAreCorrelated() const
+{
+	return false;
+}
 
 unsigned int l1menu::triggers::SingleIsoEGEta_v0::version() const
 {

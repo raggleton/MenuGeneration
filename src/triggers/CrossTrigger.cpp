@@ -56,3 +56,9 @@ bool l1menu::triggers::CrossTrigger::apply( const l1menu::L1TriggerDPGEvent& eve
 {
 	return pLeg1_->apply(event) && pLeg2_->apply(event);
 }
+
+bool l1menu::triggers::CrossTrigger::thresholdsAreCorrelated() const
+{
+	// If any thresholds in either of the legs are correlated then the say the whole trigger is
+	return pLeg1_->thresholdsAreCorrelated() || pLeg2_->thresholdsAreCorrelated();
+}

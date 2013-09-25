@@ -47,6 +47,7 @@ namespace l1menu
 		public:
 			virtual unsigned int version() const;
 			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+			virtual bool thresholdsAreCorrelated() const;
 		}; // end of version 0 class
 
 
@@ -115,6 +116,10 @@ bool l1menu::triggers::DoubleJetCentral_v0::apply( const l1menu::L1TriggerDPGEve
 	return ok;
 }
 
+bool l1menu::triggers::DoubleJetCentral_v0::thresholdsAreCorrelated() const
+{
+	return false;
+}
 
 unsigned int l1menu::triggers::DoubleJetCentral_v0::version() const
 {

@@ -56,6 +56,10 @@ bool l1menu::triggers::HTM_v0::apply( const l1menu::L1TriggerDPGEvent& event ) c
 	return true;
 }
 
+bool l1menu::triggers::HTM_v0::thresholdsAreCorrelated() const
+{
+	return false;
+}
 
 unsigned int l1menu::triggers::HTM_v0::version() const
 {

@@ -30,6 +30,7 @@ namespace l1menu
 			virtual float& parameter( const std::string& parameterName );
 			virtual const float& parameter( const std::string& parameterName ) const;
 			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+			virtual bool thresholdsAreCorrelated() const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pLeg1_;
 			std::unique_ptr<l1menu::ITrigger> pLeg2_;

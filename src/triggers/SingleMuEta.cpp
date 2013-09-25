@@ -75,6 +75,10 @@ bool l1menu::triggers::SingleMuEta_v0::apply( const l1menu::L1TriggerDPGEvent& e
 	return ok;
 }
 
+bool l1menu::triggers::SingleMuEta_v0::thresholdsAreCorrelated() const
+{
+	return false;
+}
 
 unsigned int l1menu::triggers::SingleMuEta_v0::version() const
 {

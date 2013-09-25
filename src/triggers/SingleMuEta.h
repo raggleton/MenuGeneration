@@ -51,6 +51,7 @@ namespace l1menu
 		public:
 			virtual unsigned int version() const;
 			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+			virtual bool thresholdsAreCorrelated() const;
 		}; // end of version 0 class
 
 

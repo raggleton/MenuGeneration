@@ -56,6 +56,7 @@ namespace l1menu
 		virtual float& parameter( const std::string& parameterName ) = 0;
 		virtual const float& parameter( const std::string& parameterName ) const = 0;
 		virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const = 0;
+		virtual bool thresholdsAreCorrelated() const = 0;
 	};
 
 } // end of namespace l1menu

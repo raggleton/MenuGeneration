@@ -56,6 +56,7 @@ namespace l1menu
 		public:
 			virtual unsigned int version() const;
 			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+			virtual bool thresholdsAreCorrelated() const;
 		}; // end of version 0 class
 
 		/** @brief First version of the IsoEG_JetCentral trigger.
@@ -68,6 +69,7 @@ namespace l1menu
 		public:
 			virtual unsigned int version() const;
 			virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+			virtual bool thresholdsAreCorrelated() const;
 		}; // end of version 0 class
 
 
@@ -154,6 +156,10 @@ bool l1menu::triggers::IsoEG_JetCentral_v1::apply( const l1menu::L1TriggerDPGEve
 	return ok;
 }
 
+bool l1menu::triggers::IsoEG_JetCentral_v1::thresholdsAreCorrelated() const
+{
+	return true;
+}
 
 unsigned int l1menu::triggers::IsoEG_JetCentral_v1::version() const
 {
@@ -209,6 +215,10 @@ bool l1menu::triggers::IsoEG_JetCentral_v0::apply( const l1menu::L1TriggerDPGEve
 	return ok;
 }
 
+bool l1menu::triggers::IsoEG_JetCentral_v0::thresholdsAreCorrelated() const
+{
+	return true;
+}
 
 unsigned int l1menu::triggers::IsoEG_JetCentral_v0::version() const
 {
