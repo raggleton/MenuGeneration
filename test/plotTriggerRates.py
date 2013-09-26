@@ -4,6 +4,7 @@
 
 from ROOT import TH1D, TCanvas, TPad, TAxis, TFile, TLegend
 import math
+import sys
 
 #gROOT.Reset()
 
@@ -35,7 +36,7 @@ class TriggerRate(object):
 		self.axisTitleOffset=None
 
 	def add( self, histogram, legendTitle=None ):
-		availableColours=[2,4,5,6,7,8,9,10]
+		availableColours=[2,4,8,9,11,41,44,46]
 		if legendTitle==None: legendTitle=histogram.GetTitle()
 		self.histograms.append( histogram.Clone() )
 		# Make sure the copy has a globally unique name
@@ -94,7 +95,7 @@ class TriggerRateRatio(object):
 		self.axisTitleOffset=None
 	
 	def add( self, numeratorHistogram, denominatorHistogram, legendTitle=None ):
-		availableColours=[1,2,4,5,6,7,8,9,10]
+		availableColours=[4,8,9,11,41,44,46]
 		
 		numberOfBins=numeratorHistogram.GetXaxis().GetNbins()
 		lowEdge=numeratorHistogram.GetXaxis().GetXmin()
@@ -213,28 +214,48 @@ triggers = ["SingleEG","SingleIsoEG","SingleMu",
 "isoEG_Mu","isoMu_EG","isoMu_Tau","SingleJetC","DoubleJet",
 "SingleMu_CJet",
 "SingleIsoEG_HTM","SingleMu_HTM","HTM","HTT",
-"QuadJetC","SixJet","SingleIsoEG_CJet","SingleIsoEG_CJet2","SingleTau","isoEG_Tau"
+"QuadJetC","SixJet","SingleIsoEG_CJet","SingleTau","isoEG_Tau"
 ]
 
 plots = []
 
-#newFile=TFile.Open("/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/rateHistograms-logicTest.root")
-#oldFile=TFile.Open("/home/xtaldaq/MenuGenerationFiles/oldResults/L1RateHist_14TeV100PU_25ns50bxMC_FallbackThr1_rates-newBinning.root")
-newFile=TFile.Open("/home/xtaldaq/MenuGenerationFiles/oldResults/rateHistograms-fullSample.root")
-oldFile=TFile.Open("/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/rateHistograms.root")
-newFileTitle="FullSample file"
-oldFileTitle="ReducedSample file"
+
+#
+# Process the command line to see which files to run over
+# 
+filenamesAndTitles=[]
+
+nextTitle="File1"
+arg=1
+while arg < len(sys.argv):
+	if sys.argv[arg]=="-t":
+		arg+=1
+		nextTitle=sys.argv[arg]
+		arg+=1
+		
+	filenamesAndTitles.append( [sys.argv[arg], nextTitle] )
+	nextTitle="File"+str(len(filenamesAndTitles)+1)
+	arg+=1
+
+filesAndTitles=[]
+for filenameAndTitle in filenamesAndTitles:
+	thisFile=TFile.Open(filenameAndTitle[0])
+	if thisFile==None:
+		print "Unable to open file "+filenameAndTitle[0]
+	else:
+		filesAndTitles.append( [thisFile,filenameAndTitle[1]] )
+
+#
+# Now have all the information required from the commande line, so
+# can begin processing.
+#
 
 for trigger in triggers:
 	plots.append( TriggerRateComparisonPlot() )
-#	if trigger!="SingleIsoEG_CJet":
-#		plots[-1].addByTriggerName( newFile, trigger, newFileTitle )
-#	else:
-#		plots[-1].add( newFile.Get("L1_SingleIsoEG_CJet2_v_allThresholdsScaled"), newFileTitle )
-	plots[-1].addByTriggerName( newFile, trigger, newFileTitle )
-	plots[-1].addByTriggerName( oldFile, trigger, oldFileTitle )
+	for fileAndTitle in filesAndTitles:
+		plots[-1].addByTriggerName( fileAndTitle[0], trigger, fileAndTitle[1] )
 	plots[-1].draw()
 	# Add an extra member to say where to save, in case I choose to do so later
 	plots[-1].saveFilename=trigger+"_rateVsThreshold.pdf"
-	#plots[-1].canvas.SaveAs( trigger+"_rateVsThreshold.pdf" )
+	#plots[-1].canvas.SaveAs( plots[-1].saveFilename )
 
