@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
 
 		std::unique_ptr<const l1menu::IMenuRate> pRates=pSample->rate(menu);
 
-		l1menu::tools::dumpTriggerRates( std::cout, pRates );
+		l1menu::tools::dumpTriggerRates( std::cout, *pRates );
 	}
 	catch( std::exception& error )
 	{

@@ -322,7 +322,7 @@ bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITrigger& trigger, b
 	{
 		// Skip over versus parameter and scaled parameters
 		if( parameterName==versusParameter_ ) continue;
-		if( std::find( otherScaledParameters_.begin(), otherScaledParameters_.end(), parameterName )==otherScaledParameters_.end() ) continue;
+		if( std::find( otherScaledParameters_.begin(), otherScaledParameters_.end(), parameterName )!=otherScaledParameters_.end() ) continue;
 
 		if( pTrigger_->parameter(parameterName)!=trigger.parameter(parameterName) ) return false;
 	}
@@ -376,16 +376,31 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 		// Make sure all of of the bin numbers are valid
 		if( number<1 ) number=1;
 		else if( number>=pHistogram_->GetNbinsX() ) number=pHistogram_->GetNbinsX()-1;
-		dataPoints.push_back( std::make_pair( pHistogram_->GetBinCenter(number), pHistogram_->GetBinContent(number) ));
+		dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(number), pHistogram_->GetBinContent(number) ));
 	}
+
+//	std::cout << "Points for fit:";
+//	for( const auto& point : dataPoints ) std::cout << "(" << point.first << "," << point.second << ")" << ",";
+//	std::cout << "\n";
 
 	// Now do a simple linear fit on the data points
 	std::pair<float,float> slopeAndIntercept=l1menu::tools::simpleLinearFit( dataPoints );
+	float slope=slopeAndIntercept.first;
+	float intercept=slopeAndIntercept.second;
 
-	// The straight line formula "y=m*x+c" equates to
-	// "targetRate=slopeAndIntercept.first*threshold+slopeAndIntercept.second"
-	// so rearrange and return the interpolated threshold.
-	return (targetRate-slopeAndIntercept.second)/slopeAndIntercept.first;
+//	std::cout << "(" << targetRate << "-" << intercept << ")/" << slope << "=" << (targetRate-intercept)/slope << "\n";
+
+	if( slope==0 )
+	{
+		return 0;
+	}
+	else
+	{
+		float newThreshold=(targetRate-intercept)/slope;
+		if( newThreshold<0 ) return 0;
+		else if( newThreshold>pHistogram_->GetXaxis()->GetXmax() ) return pHistogram_->GetXaxis()->GetXmax();
+		else return newThreshold;
+	}
 }
 
 

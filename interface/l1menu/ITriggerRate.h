@@ -23,7 +23,7 @@ namespace l1menu
 	public:
 		virtual ~ITriggerRate() {}
 
-		/** @brief The trigger that gives the rate, which can be queiried for thresholds etcetera
+		/** @brief The trigger that gives the rate, which can be queried for thresholds etcetera
 		 * N.B. This trigger is a copy of whatever was used to calculate the rate. Changing one will
 		 * have no affect on the other.
 		 */

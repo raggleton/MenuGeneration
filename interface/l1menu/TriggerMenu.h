@@ -11,6 +11,7 @@ namespace l1menu
 	class ITrigger;
 	class L1TriggerDPGEvent;
 	class MenuFitter;
+	class MenuScan;
 }
 
 namespace l1menu
@@ -49,8 +50,8 @@ namespace l1menu
 
 		bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
 
-		void loadMenuFromFile( const std::string& filename );
-	private:
+		virtual void loadMenuFromFile( const std::string& filename );
+	protected:
 		void loadMenuInOldFormat( std::ifstream& file );
 		/** This takes a single line from the old format file, but split into the different columns. */
 		bool addTriggerFromOldFormat( const std::vector<std::string>& columns );

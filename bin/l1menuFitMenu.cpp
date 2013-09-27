@@ -1,5 +1,7 @@
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include <TFile.h>
 #include "l1menu/ISample.h"
@@ -15,10 +17,12 @@
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " [--rateplots <rateplot filename>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
+			<< "\t" << executableName << " [--rateplots <rateplot filename>] [--outputprefix <output prefix>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
 			<< "\t" << "\t" << "Tries to fit the supplied menu using the sample provided. The optional \"rateplots\" option" << "\n"
 			<< "\t" << "\t" << "allows you to reuse a valid file created by l1menuCreateRatePlots which will significantly" << "\n"
-			<< "\t" << "\t" << "speed up execution." << "\n"
+			<< "\t" << "\t" << "speed up execution. If the option \"outputprefix\" is supplied the results will be saved to" << "\n"
+			<< "\t" << "\t" << "a file with the name <output prefix>_<totalRate>kHz.txt. If this option isn't provided the" << "\n"
+			<< "\t" << "\t" << "output will be printed to standard output." << "\n"
 			<< "\n"
 			<< "\t" << executableName << " --help" << "\n"
 			<< "\t" << "\t" << "prints this help message"
@@ -31,6 +35,7 @@ int main( int argc, char* argv[] )
 	std::string sampleFilename;
 	std::string menuFilename;
 	std::string ratePlotsFilename; // Filename for rateplots. This is optional and can be empty.
+	std::string outputPrefix; // A prefix for output filenames. This is optional and can be empty, in which case no files are produced.
 	std::vector<float> totalRates;
 
 	l1menu::tools::CommandLineParser commandLineParser;
@@ -38,6 +43,7 @@ int main( int argc, char* argv[] )
 	{
 		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
 		commandLineParser.addOption( "rateplots", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "outputprefix", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.parse( argc, argv );
 
 		if( commandLineParser.optionHasBeenSet( "help" ) )
@@ -47,6 +53,7 @@ int main( int argc, char* argv[] )
 		}
 
 		if( commandLineParser.optionHasBeenSet( "rateplots" ) ) ratePlotsFilename=commandLineParser.optionArguments("rateplots").back();
+		if( commandLineParser.optionHasBeenSet( "outputprefix" ) ) outputPrefix=commandLineParser.optionArguments("outputprefix").back();
 		if( commandLineParser.nonOptionArguments().size()<3 ) throw std::runtime_error( "Not enough command line arguments" );
 
 		const std::vector<std::string>& arguments=commandLineParser.nonOptionArguments();
@@ -106,9 +113,38 @@ int main( int argc, char* argv[] )
 
 		for( const auto& totalRate : totalRates )
 		{
-			std::cout << "Fitting menu for a rate of " << totalRate << "..." << std::endl;
-			std::unique_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
-			l1menu::tools::dumpTriggerRates( std::cout, pRates );
+			std::cout << "Fitting menu for a rate of " << totalRate << "kHz..."; std::cout.flush();
+			try
+			{
+				std::unique_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
+
+				// If the user has specified filenames to save to, save the result to there
+				if( !outputPrefix.empty() )
+				{
+					std::stringstream outputFilename;
+					outputFilename << outputPrefix << "_" << totalRate << "kHz.txt";
+					std::ofstream outputFile( outputFilename.str() );
+					if( !outputFile.is_open() ) std::cerr << "ERROR unable to open " << outputFilename.str() << " to store the output" << std::endl;
+					else
+					{
+						l1menu::tools::dumpTriggerRates( outputFile, *pRates );
+						std::cout << "Output saved to " << outputFilename.str() << std::endl;
+					}
+				}
+				// Otherwise dump the information to standard output
+				else
+				{
+					std::cout << "outputprefix not specified so dumping results to standard output" << "\n";
+					l1menu::tools::dumpTriggerRates( std::cout, *pRates );
+				}
+			}
+			catch( std::exception& error )
+			{
+				std::cerr << "An exception occured while trying to fit for " << totalRate << "kHz: " << error.what() << "\n";
+				std::cout << "--------------------    Start of fit log    --------------------" << "\n"
+						<< pMenuFitter->debugLog() << "\n"
+						<< "--------------------     End of fit log     --------------------" << "\n";
+			}
 		}
 
 	}

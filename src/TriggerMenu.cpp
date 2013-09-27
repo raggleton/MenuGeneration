@@ -177,7 +177,7 @@ void l1menu::TriggerMenu::loadMenuInOldFormat( std::ifstream& file )
 		} // end of try block
 		catch( std::runtime_error& exception )
 		{
-			std::cout << "Some error occured while processing the line \"" << buffer << "\":" << exception.what() << std::endl;
+			std::cerr << "Some error occured while processing the line \"" << buffer << "\":" << exception.what() << std::endl;
 		}
 	}
 }

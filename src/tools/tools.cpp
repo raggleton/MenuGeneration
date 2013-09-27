@@ -178,7 +178,7 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 	}
 }
 
-void l1menu::tools::dumpTriggerRates( std::ostream& output, const std::unique_ptr<const l1menu::IMenuRate>& pMenuRates )
+void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates )
 {
 	// I want to print the triggers in the same order as the old code does to make results
 	// easier to compare between the old and new code. Otherwise the new code will print
@@ -239,7 +239,7 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const std::unique_pt
 	triggerNames.push_back("L1_HTT");
 
 	// Take a copy of the results so that I can resort them.
-	auto triggerRates=pMenuRates->triggerRates();
+	auto triggerRates=menuRates.triggerRates();
 	//
 	// Use a lambda function to sort the ITriggerRates into the same
 	// order as the standard list above.
@@ -289,7 +289,7 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const std::unique_pt
 	}
 
 	output << "---------------------------------------------------------------------------------------------------------------" << "\n"
-			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << pMenuRates->totalRate() << "kHz" << "\n"
+			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << menuRates.totalRate() << "kHz" << "\n"
 			<< " Total L1 Rate (without overlaps) = " << std::setw(8) << totalNoOverlaps << "kHz" << "\n"
 			<< " Total L1 Rate (pure triggers)    = " << std::setw(8) << totalPure << "kHz" << std::endl;
 }

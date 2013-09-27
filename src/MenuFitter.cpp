@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <cmath>
 #include "l1menu/ICachedTrigger.h"
 #include "l1menu/ISample.h"
@@ -26,6 +28,7 @@ namespace // Use the unnamed namespace for things only used here
 	{
 		size_t triggerNumber; ///< The number of the trigger in the trigger table
 		float bandwidthFraction; ///< The fraction of the total bandwidth requested for this trigger
+		float currentBandwidth;
 		l1menu::TriggerRatePlot ratePlot; ///< The rate plot for this trigger
 		std::string mainThreshold;
 		std::vector< std::pair<std::string,float> > thresholdScalings; ///< The constant to scale each threshold compared to the main threshold
@@ -56,8 +59,8 @@ namespace l1menu
 		l1menu::TriggerMenu menu;
 		std::vector< ::TriggerScalingDetails > scalableTriggers;
 		std::vector<std::pair<size_t,float> > bandwidthFractions;
-		std::vector<l1menu::TriggerRatePlot> ratePlots;
 		void initiateOtherTriggerInfo( size_t triggerNumber, bool lockThresholds, float fractionOfTotalBandwidth );
+		std::stringstream debugLog;
 	};
 
 }
@@ -84,35 +87,43 @@ const l1menu::TriggerMenu& l1menu::MenuFitter::menu() const
 	return pImple_->menu;
 }
 
+
 std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
 {
+	// Clear the log from whatever might be there from previous fits
+	pImple_->debugLog.str("");
+
 	//
 	// First set all the thresholds to be the ratio of the total bandwidth that
 	// the user specified. With correlations this will probably mean the total
 	// will come out less than the requested rate, but it's a good first step.
 	// Loop over all of the triggers whose thresholds are not fixed.
 	//
-	for( const auto& triggerScalingDetails : pImple_->scalableTriggers )
+	for( auto& triggerScalingDetails : pImple_->scalableTriggers )
 	{
 		l1menu::ITrigger& trigger=pImple_->menu.getTrigger( triggerScalingDetails.triggerNumber );
 
-		std::cout << "Trying to find a threshold for " << trigger.name() << " to try and get a rate of " << totalRate*triggerScalingDetails.bandwidthFraction << std::endl;
+//		pImple_->debugLog << "Trying to find a threshold for " << trigger.name()
+//				<< " to try and get a rate of " << totalRate*triggerScalingDetails.bandwidthFraction
+//				<< ". Plot title is " << triggerScalingDetails.ratePlot.getPlot()->GetTitle() << std::endl;
 
 		float& mainThreshold=trigger.parameter( triggerScalingDetails.mainThreshold );
 		// Figure out what threshold should give the target rate for this particular trigger.
 		// Note this is a reference so this command changes the trigger.
-		mainThreshold=triggerScalingDetails.ratePlot.findThreshold( totalRate*triggerScalingDetails.bandwidthFraction );
+		triggerScalingDetails.currentBandwidth=totalRate*triggerScalingDetails.bandwidthFraction;
+		mainThreshold=triggerScalingDetails.ratePlot.findThreshold( triggerScalingDetails.currentBandwidth );
 		// Then scale all of the others off this
 		for( const auto& nameScalePair : triggerScalingDetails.thresholdScalings )
 		{
 			trigger.parameter( nameScalePair.first )=mainThreshold*nameScalePair.second;
 		}
 
-		std::cout << "Initially setting threshold for " << trigger.name() << " to " << mainThreshold << " to try and get a rate of " << totalRate*triggerScalingDetails.bandwidthFraction << std::endl;
+		pImple_->debugLog << "Initially setting threshold for " << std::setw(20) << trigger.name() << " to " << std::setw(10) << mainThreshold << " to try and get a rate of " << totalRate*triggerScalingDetails.bandwidthFraction << std::endl;
 	}
 
 	// Then work out what the total rate is
 	std::unique_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
+	l1menu::tools::dumpTriggerRates( pImple_->debugLog, *pMenuRate );
 
 	size_t iterationNumber=0;
 	while ( std::fabs(pMenuRate->totalRate()-totalRate)>tolerance )
@@ -120,10 +131,10 @@ std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRat
 		if( iterationNumber>10 ) throw std::runtime_error( "Too many iterations" );
 		++iterationNumber;
 
-		float scaleAllRatesBy=totalRate/pMenuRate->totalRate();
-		std::cout << "\n" << "New loop. Last iteration had a rate of " << pMenuRate->totalRate() << ". Scaling all rates by " << scaleAllRatesBy << " to try and get " << totalRate << std::endl;
+		float scaleAllBandwidthsBy=totalRate/pMenuRate->totalRate();
+		pImple_->debugLog << "\n" << "New loop. Last iteration had a rate of " << pMenuRate->totalRate() << ". Scaling all bandwidths by " << scaleAllBandwidthsBy << " to try and get " << totalRate << std::endl;
 
-		for( const auto& triggerScalingDetails : pImple_->scalableTriggers )
+		for( auto& triggerScalingDetails : pImple_->scalableTriggers )
 		{
 			const size_t& triggerNumber=triggerScalingDetails.triggerNumber;
 			l1menu::ITrigger& trigger=pImple_->menu.getTrigger( triggerNumber );
@@ -131,21 +142,28 @@ std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRat
 
 			float& mainThreshold=trigger.parameter( triggerScalingDetails.mainThreshold );
 			// Figure out what threshold should give the target rate for this particular trigger.
-			// Note this is a reference so this command changes the trigger.
-			mainThreshold=triggerScalingDetails.ratePlot.findThreshold( pTriggerRate->rate()*scaleAllRatesBy );
+			triggerScalingDetails.currentBandwidth*=scaleAllBandwidthsBy;
+			mainThreshold=triggerScalingDetails.ratePlot.findThreshold( triggerScalingDetails.currentBandwidth );
+
 			// Then scale all of the others off this
 			for( const auto& nameScalePair : triggerScalingDetails.thresholdScalings )
 			{
 				trigger.parameter( nameScalePair.first )=mainThreshold*nameScalePair.second;
 			}
-			std::cout << "Changing threshold for " << trigger.name() << " to " << mainThreshold << " to try and change the rate from " << pTriggerRate->rate() << " to " << pTriggerRate->rate()*scaleAllRatesBy << std::endl;
+			pImple_->debugLog << "Changing threshold for " << std::setw(20) << trigger.name() << " to " << std::setw(10) << mainThreshold << " to try and change the rate from " << std::setw(10) << pTriggerRate->rate() << " to " << pTriggerRate->rate()*scaleAllBandwidthsBy << std::endl;
 
 		} // end of loop over triggers I'm allowed to change thresholds for
 
 		pMenuRate=pImple_->sample.rate( pImple_->menu );
+		l1menu::tools::dumpTriggerRates( pImple_->debugLog, *pMenuRate );
 	}
 
 	return pMenuRate;
+}
+
+const std::string l1menu::MenuFitter::debugLog()
+{
+	return pImple_->debugLog.str();
 }
 
 void l1menu::MenuFitter::addTrigger( const l1menu::ITrigger& trigger, float fractionOfTotalBandwidth, bool lockThresholds )
@@ -255,16 +273,16 @@ void l1menu::MenuFitterPrivateMembers::initiateOtherTriggerInfo( size_t triggerN
 
 		if( pPreviouslyCreatedRatePlot!=nullptr )
 		{
-			std::cout << "Found previously created plot for " << newTrigger.name() << std::endl;
+			//std::cout << "Found previously created plot for " << newTrigger.name() << ". Title is " << pPreviouslyCreatedRatePlot->getPlot()->GetTitle() << std::endl;
 			//
 			// Bundle all of this information in the helper structure I wrote in
 			// the unnamed namespace.
 			//
-			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,*pPreviouslyCreatedRatePlot,mainThreshold,std::move(thresholdScalings)} );
+			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,0,*pPreviouslyCreatedRatePlot,mainThreshold,std::move(thresholdScalings)} );
 		}
 		else
 		{
-			std::cout << "Need to create plot for " << newTrigger.name() << std::endl;
+			//std::cout << "Need to create plot for " << newTrigger.name() << std::endl;
 			//
 			// Either no rate plots were supplied or a suitable one wasn't found, so I need to
 			// create a rate plot for this trigger.
@@ -288,7 +306,7 @@ void l1menu::MenuFitterPrivateMembers::initiateOtherTriggerInfo( size_t triggerN
 			// Bundle all of this information in the helper structure I wrote in
 			// the unnamed namespace.
 			//
-			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,std::move(ratePlot),mainThreshold,std::move(thresholdScalings)} );
+			scalableTriggers.push_back( ::TriggerScalingDetails{triggerNumber,fractionOfTotalBandwidth,0,std::move(ratePlot),mainThreshold,std::move(thresholdScalings)} );
 		} // end of else block where pPreviouslyCreatedRatePlot is null
 	} // end of "if( !lockThresholds )"
 

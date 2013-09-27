@@ -78,12 +78,12 @@ namespace l1menu
 		/** @brief Prints out the trigger rates in the same format as the old L1Menu2015 to the given ostream
 		 *
 		 * @param[out] output       The stream to dump the information to.
-		 * @param[in]  pMenuRates   The object containing the information to be dumped.
+		 * @param[in]  menuRates    The object containing the information to be dumped.
 		 *
 		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 		 * @date 05/Jul/2013
 		 */
-		void dumpTriggerRates( std::ostream& output, const std::unique_ptr<const l1menu::IMenuRate>& pMenuRates );
+		void dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates );
 
 		/** @brief Prints out the trigger menu in the same format as the old L1Menu2015 to the given ostream
 		 *
