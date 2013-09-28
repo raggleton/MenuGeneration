@@ -27,7 +27,7 @@ namespace l1menu
 		MenuFitter( const l1menu::ISample& sample, const l1menu::MenuRatePlots& menuRatePlots );
 		virtual ~MenuFitter();
 		const l1menu::TriggerMenu& menu() const;
-		std::unique_ptr<const l1menu::IMenuRate> fit( float totalRate, float tolerance );
+		std::shared_ptr<const l1menu::IMenuRate> fit( float totalRate, float tolerance );
 		const std::string debugLog(); ///< @brief Returns output describing how the most recent fit proceeded.
 		void addTrigger( const l1menu::ITrigger& trigger, float fractionOfTotalBandwidth, bool lockThresholds=false );
 		void loadMenuFromFile( const std::string& filename );

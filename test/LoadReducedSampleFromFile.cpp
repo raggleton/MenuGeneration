@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
 
 		std::cout << "Calculating fractions..." << std::endl;
 
-		std::unique_ptr<const l1menu::IMenuRate> pRates=mySample.rate(menu);
+		std::shared_ptr<const l1menu::IMenuRate> pRates=mySample.rate(menu);
 
 		l1menu::tools::dumpTriggerRates( std::cout, *pRates );
 	}

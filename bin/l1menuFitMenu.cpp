@@ -10,6 +10,7 @@
 #include "l1menu/TriggerTable.h"
 #include "l1menu/ITrigger.h"
 #include "l1menu/MenuRatePlots.h"
+#include "l1menu/MenuRateMuonScaling.h"
 #include "l1menu/tools/tools.h"
 #include "l1menu/tools/stringManipulation.h"
 #include "l1menu/tools/CommandLineParser.h"

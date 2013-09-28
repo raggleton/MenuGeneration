@@ -500,7 +500,7 @@ float l1menu::FullSample::sumOfWeights() const
 	return pImple_->sumOfWeights;
 }
 
-std::unique_ptr<const l1menu::IMenuRate> l1menu::FullSample::rate( const l1menu::TriggerMenu& menu ) const
+std::shared_ptr<const l1menu::IMenuRate> l1menu::FullSample::rate( const l1menu::TriggerMenu& menu ) const
 {
-	return std::unique_ptr<const l1menu::IMenuRate>( new l1menu::implementation::MenuRateImplementation( menu, *this ) );
+	return std::shared_ptr<const l1menu::IMenuRate>( new l1menu::implementation::MenuRateImplementation( menu, *this ) );
 }

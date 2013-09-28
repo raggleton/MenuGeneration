@@ -88,7 +88,7 @@ const l1menu::TriggerMenu& l1menu::MenuFitter::menu() const
 }
 
 
-std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
+std::shared_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
 {
 	// Clear the log from whatever might be there from previous fits
 	pImple_->debugLog.str("");
@@ -122,7 +122,7 @@ std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRat
 	}
 
 	// Then work out what the total rate is
-	std::unique_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
+	std::shared_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
 	l1menu::tools::dumpTriggerRates( pImple_->debugLog, *pMenuRate );
 
 	size_t iterationNumber=0;
