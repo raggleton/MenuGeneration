@@ -117,7 +117,7 @@ int main( int argc, char* argv[] )
 			std::cout << "Fitting menu for a rate of " << totalRate << "kHz..."; std::cout.flush();
 			try
 			{
-				std::unique_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
+				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
 
 				// If the user has specified filenames to save to, save the result to there
 				if( !outputPrefix.empty() )

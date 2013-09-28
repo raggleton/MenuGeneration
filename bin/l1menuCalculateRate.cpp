@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
 
 		std::cout << "Calculating rates..." << std::endl;
 
-		std::unique_ptr<const l1menu::IMenuRate> pRates=pSample->rate(menu);
+		std::shared_ptr<const l1menu::IMenuRate> pRates=pSample->rate(menu);
 
 		l1menu::tools::dumpTriggerRates( std::cout, *pRates );
 	}
