@@ -2,6 +2,7 @@
 
 #include <string>
 #include <utility>
+#include <cmath>
 #include "l1menu/ITrigger.h"
 #include "l1menu/ICachedTrigger.h"
 #include "l1menu/ITriggerRate.h"
@@ -13,12 +14,18 @@
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {
 
-	// The number of events that pass each trigger
+	// The sum of event weights that pass each trigger
 	std::vector<float> weightOfEventsPassed( menu.numberOfTriggers() );
+	// The sume of weights squared that pass each trigger. Used to calculate the error.
+	std::vector<float> weightSquaredOfEventsPassed( menu.numberOfTriggers() );
+
 	// The number of events that only pass the given trigger
 	std::vector<float> weightOfEventsPure( menu.numberOfTriggers() );
-	float weightOfEventsPassingAnyTrigger=0;
-	float weightOfAllEvents=0;
+	std::vector<float> weightSquaredOfEventsPure( menu.numberOfTriggers() );
+
+	weightOfEventsPassingAnyTrigger_=0;
+	weightSquaredOfEventsPassingAnyTrigger_=0;
+	weightOfAllEvents_=0;
 
 	// Using cached triggers significantly increases speed for ReducedSample
 	// because it cuts out expensive string comparisons when querying the trigger
@@ -35,7 +42,7 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	{
 		const l1menu::IEvent& event=sample.getEvent(eventNumber);
 		float weight=event.weight();
-		weightOfAllEvents+=weight;
+		weightOfAllEvents_+=weight;
 
 		size_t numberOfTriggersPassed=0;
 
@@ -46,22 +53,29 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 				// If the event passes the trigger, increment the counters
 				++numberOfTriggersPassed;
 				weightOfEventsPassed[triggerNumber]+=weight;
+				weightSquaredOfEventsPassed[triggerNumber]+=(weight*weight);
 				numberOfLastPassedTrigger=triggerNumber; // If only one event passes, this is used to increment the pure counter
 			}
 		}
 
 		// See if I should increment any of the pure or total counters
-		if( numberOfTriggersPassed==1 ) weightOfEventsPure[numberOfLastPassedTrigger]+=weight;
-		if( numberOfTriggersPassed>0 ) weightOfEventsPassingAnyTrigger+=weight;
+		if( numberOfTriggersPassed==1 )
+		{
+			weightOfEventsPure[numberOfLastPassedTrigger]+=weight;
+			weightSquaredOfEventsPure[numberOfLastPassedTrigger]+=(weight*weight);
+		}
+		if( numberOfTriggersPassed>0 )
+		{
+			weightOfEventsPassingAnyTrigger_+=weight;
+			weightSquaredOfEventsPassingAnyTrigger_+=(weight*weight);
+		}
 	}
 
-	setScaling( sample.eventRate() );
-	setWeightOfAllEvents( weightOfAllEvents );
-	setWeightOfEventsPassingAnyTrigger( weightOfEventsPassingAnyTrigger );
+	scaling_=sample.eventRate();
 
 	for( size_t triggerNumber=0; triggerNumber<cachedTriggers.size(); ++triggerNumber )
 	{
-		addTriggerRate( menu.getTrigger(triggerNumber), weightOfEventsPassed[triggerNumber], weightOfEventsPure[triggerNumber] );
+		triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),weightOfEventsPassed[triggerNumber],weightSquaredOfEventsPassed[triggerNumber],weightOfEventsPure[triggerNumber],weightSquaredOfEventsPure[triggerNumber],*this)) );
 	}
 
 }
@@ -76,19 +90,9 @@ float l1menu::implementation::MenuRateImplementation::weightOfAllEventsPassingAn
 	return weightOfEventsPassingAnyTrigger_;
 }
 
-void l1menu::implementation::MenuRateImplementation::setWeightOfAllEvents( float weightOfAllEvents )
+float l1menu::implementation::MenuRateImplementation::weightSquaredOfAllEventsPassingAnyTrigger() const
 {
-	weightOfAllEvents_=weightOfAllEvents;
-}
-
-void l1menu::implementation::MenuRateImplementation::setWeightOfEventsPassingAnyTrigger( float weightOfEventsPassingAnyTrigger )
-{
-	weightOfEventsPassingAnyTrigger_=weightOfEventsPassingAnyTrigger;
-}
-
-void l1menu::implementation::MenuRateImplementation::setScaling( float scaling )
-{
-	scaling_=scaling;
+	return weightSquaredOfEventsPassingAnyTrigger_;
 }
 
 float l1menu::implementation::MenuRateImplementation::scaling() const
@@ -96,19 +100,24 @@ float l1menu::implementation::MenuRateImplementation::scaling() const
 	return scaling_;
 }
 
-void l1menu::implementation::MenuRateImplementation::addTriggerRate( const l1menu::ITrigger& trigger, float weightOfEventsPassingTheTrigger, float weightOfEventsOnlyPassingTheTrigger )
-{
-	triggerRates_.push_back( std::move(TriggerRateImplementation(trigger,weightOfEventsPassingTheTrigger,weightOfEventsOnlyPassingTheTrigger,*this)) );
-}
-
 float l1menu::implementation::MenuRateImplementation::totalFraction() const
 {
 	return weightOfEventsPassingAnyTrigger_/weightOfAllEvents_;
 }
 
+float l1menu::implementation::MenuRateImplementation::totalFractionError() const
+{
+	return std::sqrt(weightSquaredOfEventsPassingAnyTrigger_)/weightOfAllEvents_;
+}
+
 float l1menu::implementation::MenuRateImplementation::totalRate() const
 {
 	return totalFraction()*scaling_;
+}
+
+float l1menu::implementation::MenuRateImplementation::totalRateError() const
+{
+	return totalFractionError()*scaling_;
 }
 
 const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRateImplementation::triggerRates() const

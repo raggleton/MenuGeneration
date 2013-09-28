@@ -32,19 +32,19 @@ namespace l1menu
 			MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample );
 			float weightOfAllEvents() const;
 			float weightOfAllEventsPassingAnyTrigger() const;
-			void setWeightOfAllEvents( float weightOfAllEvents );
-			void setWeightOfEventsPassingAnyTrigger( float weightOfEventsPassingAnyTrigger );
+			float weightSquaredOfAllEventsPassingAnyTrigger() const;
 
-			void setScaling( float scaling );
 			float scaling() const;
-			void addTriggerRate( const l1menu::ITrigger& trigger, float weightOfEventsPassingTheTrigger, float weightOfEventsOnlyPassingTheTrigger );
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;
+			virtual float totalFractionError() const;
 			virtual float totalRate() const;
+			virtual float totalRateError() const;
 			virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const;
 		protected:
 			float weightOfAllEvents_;
 			float weightOfEventsPassingAnyTrigger_;
+			float weightSquaredOfEventsPassingAnyTrigger_;
 			float scaling_;
 			std::vector<TriggerRateImplementation> triggerRates_;
 		private:

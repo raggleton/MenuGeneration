@@ -275,12 +275,14 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 			if( thresholdNames.size()>thresholdNumber ) threshold=trigger.parameter(thresholdNames[thresholdNumber]);
 			else threshold=-1;
 
-			output << std::setw(8) << threshold;
+			output << " " << std::setw(7) << threshold;
 		}
 
 		// Print the rates
-		output << std::setw(16) << pRate->rate();
-		output << std::setw(12) << pRate->pureRate();
+		output << " " << std::setw(15) << pRate->rate();
+		output << " " << std::setw(15) << pRate->rateError();
+		output << " " << std::setw(11) << pRate->pureRate();
+		output << " " << std::setw(11) << pRate->pureRateError();
 
 		totalNoOverlaps+=pRate->rate();
 		totalPure+=pRate->pureRate();
@@ -289,7 +291,7 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 	}
 
 	output << "---------------------------------------------------------------------------------------------------------------" << "\n"
-			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << menuRates.totalRate() << "kHz" << "\n"
+			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << menuRates.totalRate() << "kHz +/- " << menuRates.totalRateError() << "\n"
 			<< " Total L1 Rate (without overlaps) = " << std::setw(8) << totalNoOverlaps << "kHz" << "\n"
 			<< " Total L1 Rate (pure triggers)    = " << std::setw(8) << totalPure << "kHz" << std::endl;
 }

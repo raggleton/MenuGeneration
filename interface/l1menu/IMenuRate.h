@@ -25,7 +25,9 @@ namespace l1menu
 
 		/** @brief The fraction of events that passed all triggers, 1 being all events and 0 no events. */
 		virtual float totalFraction() const = 0;
+		virtual float totalFractionError() const = 0;
 		virtual float totalRate() const = 0;
+		virtual float totalRateError() const = 0;
 
 		virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const = 0;
 	};

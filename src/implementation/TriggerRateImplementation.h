@@ -30,7 +30,7 @@ namespace l1menu
 		class TriggerRateImplementation : public l1menu::ITriggerRate
 		{
 		public:
-			TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate );
+			TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightSquaredOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, float weightSquaredOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate );
 			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move constructor
 			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move assignment
 			virtual ~TriggerRateImplementation();
@@ -38,13 +38,19 @@ namespace l1menu
 			// Methods required by the l1menu::ITriggerRate interface
 			virtual const l1menu::ITrigger& trigger() const;
 			virtual float fraction() const;
+			virtual float fractionError() const;
 			virtual float rate() const;
+			virtual float rateError() const;
 			virtual float pureFraction() const;
+			virtual float pureFractionError() const;
 			virtual float pureRate() const;
+			virtual float pureRateError() const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
 			float weightOfEventsPassingThisTrigger_;
+			float weightSquaredOfEventsPassingThisTrigger_;
 			float weightOfEventsOnlyPassingThisTrigger_;
+			float weightSquaredOfEventsOnlyPassingThisTrigger_;
 			const MenuRateImplementation& menuRate_;
 		};
 

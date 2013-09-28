@@ -31,15 +31,19 @@ namespace l1menu
 
 		/** @brief The fraction of events that this trigger passed, so before applying any scaling. */
 		virtual float fraction() const = 0;
+		virtual float fractionError() const = 0;
 
 		/** @brief The rate, so fraction multiplied by the scaling. */
 		virtual float rate() const = 0;
+		virtual float rateError() const = 0;
 
 		/** @brief The fraction of events that pass only this trigger, with no scaling. */
 		virtual float pureFraction() const = 0;
+		virtual float pureFractionError() const = 0;
 
 		/** @brief The pure rate, so pureFraction multiplied by the scaling. */
 		virtual float pureRate() const = 0;
+		virtual float pureRateError() const = 0;
 	};
 
 } // end of namespace l1menu

@@ -359,7 +359,13 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 		if( pHistogram_->GetBinContent(binNumber)<targetRate ) break;
 	}
 
-	//if( binNumber==pHistogram_->GetNbinsX() ) throw std::runtime_error( "l1menu::TriggerRatePlot::findThreshold() was unable to find a threshold for the given rate" );
+	// If the search got to the end, put it one back so that when I fill
+	// the binNumberForLinearFit vector below it includes the last four
+	// bins for the linear fit.
+	if( binNumber==pHistogram_->GetNbinsX() ) binNumber=pHistogram_->GetNbinsX()-1;
+	// Likewise make sure if I'm at the start that when I fill the vector
+	// the bins it uses actually exist.
+	if( binNumber<3 ) binNumber=3;
 
 	// I now have the bin number of the bin after the point I'm looking
 	// for. Now do a linear fit to interpolate between the bins using the
@@ -375,29 +381,30 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 	{
 		// Make sure all of of the bin numbers are valid
 		if( number<1 ) number=1;
-		else if( number>=pHistogram_->GetNbinsX() ) number=pHistogram_->GetNbinsX()-1;
+		else if( number>pHistogram_->GetNbinsX() ) number=pHistogram_->GetNbinsX();
 		dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(number), pHistogram_->GetBinContent(number) ));
 	}
-
-//	std::cout << "Points for fit:";
-//	for( const auto& point : dataPoints ) std::cout << "(" << point.first << "," << point.second << ")" << ",";
-//	std::cout << "\n";
 
 	// Now do a simple linear fit on the data points
 	std::pair<float,float> slopeAndIntercept=l1menu::tools::simpleLinearFit( dataPoints );
 	float slope=slopeAndIntercept.first;
 	float intercept=slopeAndIntercept.second;
 
-//	std::cout << "(" << targetRate << "-" << intercept << ")/" << slope << "=" << (targetRate-intercept)/slope << "\n";
-
-	if( slope==0 )
+	if( std::fabs(slope)<std::pow(10,-4) ) // see if the slope==0 within a little tolerance
 	{
-		return 0;
+		// Some of the triggers, e.g. muons, can only have the threshold set in discrete steps. So the rate plot
+		// comes out looking as though it has steps in it. All of the bins for the linear fit could be on the same
+		// step (I think this will only happen if it's the bins at the high threshold end, but anyway). In this
+		// case I'll just come back along the plot and return the value for the lowest bin, i.e. the lowest
+		// threshold for this particular "step".
+		while( binNumber>1 && pHistogram_->GetBinContent(binNumber)==pHistogram_->GetBinContent(binNumber-1) ) --binNumber;
+		return pHistogram_->GetBinLowEdge(binNumber);
 	}
 	else
 	{
 		float newThreshold=(targetRate-intercept)/slope;
-		if( newThreshold<0 ) return 0;
+		if( newThreshold<0 ) return 0; // Apply some sanity checks
+		// Do I want to extrapolate out past where the histogram goes? Not sure. I won't for the time being.
 		else if( newThreshold>pHistogram_->GetXaxis()->GetXmax() ) return pHistogram_->GetXaxis()->GetXmax();
 		else return newThreshold;
 	}
