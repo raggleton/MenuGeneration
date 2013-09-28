@@ -52,7 +52,7 @@ std::vector<const l1menu::IMenuRate*> l1menu::BandwidthScan::scan( float fromBan
 	if( fromBandwidth>toBandwidth ) std::swap( fromBandwidth, toBandwidth );
 	std::cout << "Scanning bandwidth from " << fromBandwidth << " to " << toBandwidth << std::endl;
 
-	std::shared_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
+	std::unique_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
 	l1menu::tools::dumpTriggerRates( std::cout, *pMenuRate );
 
 	// Run through the bandwidths for each trigger and find out which one is furthest off what it should
