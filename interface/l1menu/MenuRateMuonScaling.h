@@ -25,7 +25,7 @@ namespace l1menu
 	struct MenuRateMuonScaling : public l1menu::IMenuRate
 	{
 	public:
-		MenuRateMuonScaling( std::unique_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& muonScalingFilename );
+		MenuRateMuonScaling( std::shared_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& muonScalingFilename );
 		virtual ~MenuRateMuonScaling();
 
 		// The methods required by the IMenuRate interface

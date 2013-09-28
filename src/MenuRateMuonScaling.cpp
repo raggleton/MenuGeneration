@@ -12,16 +12,16 @@ namespace l1menu
 	class MenuRateMuonScalingPrivateMembers
 	{
 	public:
-		MenuRateMuonScalingPrivateMembers( std::unique_ptr<const l1menu::IMenuRate> pUnscaledRate ) : pUnscaledMenuRate(std::move(pUnscaledRate)) {}
+		MenuRateMuonScalingPrivateMembers( std::shared_ptr<const l1menu::IMenuRate> pUnscaledRate ) : pUnscaledMenuRate(pUnscaledRate) {}
 		std::vector<const l1menu::ITriggerRate*> triggerRates;
-		std::unique_ptr<const l1menu::IMenuRate> pUnscaledMenuRate;
+		std::shared_ptr<const l1menu::IMenuRate> pUnscaledMenuRate;
 		std::unique_ptr<TH1> pMuonScalePtPlot;
 		std::unique_ptr<TH1> pMuonScaleIsolationPlot;
 	};
 }
 
-l1menu::MenuRateMuonScaling::MenuRateMuonScaling( std::unique_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& muonScalingFilename )
-	: pImple_( new l1menu::MenuRateMuonScalingPrivateMembers(std::move(pUnscaledMenuRate)) )
+l1menu::MenuRateMuonScaling::MenuRateMuonScaling( std::shared_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& muonScalingFilename )
+	: pImple_( new l1menu::MenuRateMuonScalingPrivateMembers(pUnscaledMenuRate) )
 {
 	std::unique_ptr<TFile> pMuonScalingFile( TFile::Open(muonScalingFilename.c_str()) );
 	if( pMuonScalingFile==nullptr ) throw std::runtime_error( "Couldn't create MenuRateMuonScaling because couldn't open TFile "+muonScalingFilename );
