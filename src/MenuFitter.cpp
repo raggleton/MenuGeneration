@@ -98,6 +98,11 @@ const l1menu::TriggerRatePlot& l1menu::MenuFitter::triggerRatePlot( size_t trigg
 	throw std::runtime_error( "l1menu::MenuFitter::triggerRatePlot was asked for a plot for a trigger that doesn't have a plot" );
 }
 
+const l1menu::MenuRatePlots& l1menu::MenuFitter::menuRatePlots() const
+{
+	return *pImple_->pMenuRatePlots;
+}
+
 std::shared_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
 {
 	// Clear the log from whatever might be there from previous fits

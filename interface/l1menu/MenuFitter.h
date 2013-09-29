@@ -28,11 +28,14 @@ namespace l1menu
 		MenuFitter( const l1menu::ISample& sample, const l1menu::MenuRatePlots& menuRatePlots );
 		virtual ~MenuFitter();
 		const l1menu::TriggerMenu& menu() const;
-		const l1menu::TriggerRatePlot& triggerRatePlot( size_t triggerNumber ) const;
 		std::shared_ptr<const l1menu::IMenuRate> fit( float totalRate, float tolerance );
 		const std::string debugLog(); ///< @brief Returns output describing how the most recent fit proceeded.
 		void addTrigger( const l1menu::ITrigger& trigger, float fractionOfTotalBandwidth, bool lockThresholds=false );
 		void loadMenuFromFile( const std::string& filename );
+
+		// TODO need to tidy these methods. Not very consistent.
+		const l1menu::TriggerRatePlot& triggerRatePlot( size_t triggerNumber ) const;
+		const l1menu::MenuRatePlots& menuRatePlots() const;
 	private:
 		std::unique_ptr<class MenuFitterPrivateMembers> pImple_;
 	};

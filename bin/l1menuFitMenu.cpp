@@ -3,18 +3,22 @@
 #include <sstream>
 #include <fstream>
 
-#include <TFile.h>
 #include "l1menu/ISample.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/MenuFitter.h"
 #include "l1menu/TriggerTable.h"
 #include "l1menu/ITrigger.h"
+#include "l1menu/TriggerMenu.h"
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/MenuRateMuonScaling.h"
 #include "l1menu/MenuRateOfflineScaling.h"
 #include "l1menu/tools/tools.h"
 #include "l1menu/tools/stringManipulation.h"
 #include "l1menu/tools/CommandLineParser.h"
+#include "l1menu/scalings/MuonAndMCScaling.h"
+#include "l1menu/scalings/OnlineToOfflineScaling.h"
+#include <TFile.h>
+#include <TH1.h>
 
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
@@ -125,6 +129,29 @@ int main( int argc, char* argv[] )
 			std::cout << "Fitting menu for a rate of " << totalRate << "kHz..."; std::cout.flush();
 			try
 			{
+				l1menu::scalings::MuonAndMCScaling muonAndMCScaling( muonScalingFilename,
+						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsMCMC_FallbackThr1_rates.root",
+						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsDataMC_FallbackThr1_rates.root" );
+				l1menu::scalings::OnlineToOfflineScaling onlineToOfflineScaling( offlineScalingFilename );
+
+				// Use a smart pointer with a custom deleter that will close the file properly.
+				std::unique_ptr<TFile,void(*)(TFile*)> pOriginalOutputFile( new TFile( "originalHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+				std::unique_ptr<TFile,void(*)(TFile*)> pRootOnlineOutputFile( new TFile( "scaledOnlineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+				std::unique_ptr<TFile,void(*)(TFile*)> pRootOfflineOutputFile( new TFile( "scaledOfflineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+				for( size_t triggerNumber=0; triggerNumber<pMenuFitter->menu().numberOfTriggers(); ++triggerNumber )
+				{
+					l1menu::TriggerRatePlot& originalPlot=const_cast<l1menu::TriggerRatePlot&>(pMenuFitter->triggerRatePlot(triggerNumber));
+					std::unique_ptr<l1menu::TriggerRatePlot> pScaledPlot=muonAndMCScaling.scaleTriggerRatePlot( originalPlot );
+					std::unique_ptr<l1menu::TriggerRatePlot> pOfflinePlot=onlineToOfflineScaling.scaleTriggerRatePlot( *pScaledPlot );
+					originalPlot.getPlot()->SetDirectory( pOriginalOutputFile.get() );
+					pScaledPlot->getPlot()->SetDirectory( pRootOnlineOutputFile.get() );
+					pOfflinePlot->getPlot()->SetDirectory( pRootOfflineOutputFile.get() );
+					originalPlot.relinquishOwnershipOfPlot();
+					pScaledPlot->relinquishOwnershipOfPlot();
+					pOfflinePlot->relinquishOwnershipOfPlot();
+				}
+
+
 				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
 
 				std::shared_ptr<const l1menu::IMenuRate> pScaledRates;

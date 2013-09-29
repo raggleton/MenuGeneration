@@ -163,7 +163,7 @@ l1menu::MenuRateOfflineScaling::MenuRateOfflineScaling( std::shared_ptr<const l1
 	std::ifstream inputFile( offlineScalingFilename );
 	if( !inputFile.is_open() ) throw std::runtime_error( "MenuRateOfflineScaling could not be constructed because the input file "+offlineScalingFilename+" could no be opened" );
 
-	// This is a map that users the trigger name as a key. The value part is a vector
+	// This is a map that uses the trigger name as a key. The value part is a vector
 	// of the scalings for each of the thresholds, held as a pair with slope as "first"
 	// and the offset as "second".
 	std::map<std::string, std::vector<std::pair<float,float> > > triggerScalings;

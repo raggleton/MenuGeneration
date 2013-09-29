@@ -167,6 +167,11 @@ const std::vector<l1menu::TriggerRatePlot>& l1menu::MenuRatePlots::triggerRatePl
 	return triggerPlots_;
 }
 
+std::vector<l1menu::TriggerRatePlot>& l1menu::MenuRatePlots::triggerRatePlots()
+{
+	return triggerPlots_;
+}
+
 void l1menu::MenuRatePlots::relinquishOwnershipOfPlots()
 {
 	// Loop over each of the TriggerRatePlots and individually release them.

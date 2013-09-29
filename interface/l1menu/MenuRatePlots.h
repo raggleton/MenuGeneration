@@ -54,6 +54,7 @@ namespace l1menu
 
 		/** @brief Returns a vector of the individual l1menu::TriggerRatePlot objects that make up the menu rate. */
 		const std::vector<l1menu::TriggerRatePlot>& triggerRatePlots() const;
+		std::vector<l1menu::TriggerRatePlot>& triggerRatePlots();
 
 		/** @brief Relinquish ownership of all the root TH1 plots.
 		 *
