@@ -1,5 +1,5 @@
-#ifndef l1menu_MenuRateMuonScaling_h
-#define l1menu_MenuRateMuonScaling_h
+#ifndef l1menu_MenuRateOfflineScaling_h
+#define l1menu_MenuRateOfflineScaling_h
 
 #include <vector>
 #include <memory>
@@ -13,21 +13,20 @@
 namespace l1menu
 {
 	class ITriggerRate;
-	class MenuFitter;
 }
 
 namespace l1menu
 {
-	/** @brief Applies scalings for muon pt and isolation to an IMenuRate instance.
+	/** @brief Applies scalings to change the threshold from online to offline
 	 *
 	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
-	 * @date 28/Sep/2013
+	 * @date 29/Sep/2013
 	 */
-	struct MenuRateMuonScaling : public l1menu::IMenuRate
+	struct MenuRateOfflineScaling : public l1menu::IMenuRate
 	{
 	public:
-		MenuRateMuonScaling( std::shared_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& muonScalingFilename, const l1menu::MenuFitter& fitter );
-		virtual ~MenuRateMuonScaling();
+		MenuRateOfflineScaling( std::shared_ptr<const l1menu::IMenuRate> pUnscaledMenuRate, const std::string& offlineScalingFilename );
+		virtual ~MenuRateOfflineScaling();
 
 		// The methods required by the IMenuRate interface
 		virtual float totalFraction() const;
@@ -37,7 +36,7 @@ namespace l1menu
 
 		virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const;
 	private:
-		std::unique_ptr<class MenuRateMuonScalingPrivateMembers> pImple_;
+		std::unique_ptr<class MenuRateOfflineScalingPrivateMembers> pImple_;
 	};
 
 } // end of namespace l1menu

@@ -83,7 +83,8 @@ namespace l1menu
 		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 		 * @date 05/Jul/2013
 		 */
-		void dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates );
+		void dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates, const l1menu::IMenuRate* pOfflineThresholds=nullptr );
+		void dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates, const l1menu::IMenuRate& offlineThresholds );
 
 		/** @brief Prints out the trigger menu in the same format as the old L1Menu2015 to the given ostream
 		 *

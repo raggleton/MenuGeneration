@@ -87,6 +87,16 @@ const l1menu::TriggerMenu& l1menu::MenuFitter::menu() const
 	return pImple_->menu;
 }
 
+const l1menu::TriggerRatePlot& l1menu::MenuFitter::triggerRatePlot( size_t triggerNumber ) const
+{
+	for( const auto& triggerScalingDetails : pImple_->scalableTriggers )
+	{
+		if( triggerScalingDetails.triggerNumber==triggerNumber ) return triggerScalingDetails.ratePlot;
+	}
+
+	// If control got this far then there is no plot
+	throw std::runtime_error( "l1menu::MenuFitter::triggerRatePlot was asked for a plot for a trigger that doesn't have a plot" );
+}
 
 std::shared_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
 {

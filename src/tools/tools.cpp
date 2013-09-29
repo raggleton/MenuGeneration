@@ -178,8 +178,10 @@ void l1menu::tools::setTriggerThresholdsAsTightAsPossible( const l1menu::L1Trigg
 	}
 }
 
-void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates )
+void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates, const l1menu::IMenuRate* pOfflineThresholds )
 {
+	const char delimeter=',';
+
 	// I want to print the triggers in the same order as the old code does to make results
 	// easier to compare between the old and new code. Otherwise the new code will print
 	// the results alphabetically. I need to hard code that order with this vector.
@@ -258,6 +260,30 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 			else return iFirstPosition<iSecondPosition;
 		} );
 
+	// Create strings of the offline thresholds if they exist. Put them in a map with the trigger name as a key
+	// so that I can easily match them up with the online thresholds.
+	std::map<std::string,std::string> offlineThresholdStrings;
+	if( pOfflineThresholds!=nullptr )
+	{
+		std::stringstream offlineOutput;
+		for( const auto& pOfflineRate : pOfflineThresholds->triggerRates() )
+		{
+			offlineOutput.str("");
+
+			const auto& trigger=pOfflineRate->trigger();
+
+			// Print the thresholds
+			std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( trigger );
+			for( size_t thresholdNumber=0; thresholdNumber<4; ++thresholdNumber )
+			{
+				if( thresholdNames.size()>thresholdNumber ) offlineOutput << delimeter << std::setw(7) << trigger.parameter(thresholdNames[thresholdNumber]);
+				else offlineOutput << delimeter << std::setw(7) << " ";
+			}
+
+			offlineThresholdStrings[trigger.name()]=offlineOutput.str();
+		}
+	}
+
 	float totalNoOverlaps=0;
 	float totalPure=0;
 	for( const auto& pRate : triggerRates )
@@ -265,24 +291,28 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 		const auto& trigger=pRate->trigger();
 		//output << "Trigger " << pRate->trigger().name() << " has fraction " << pRate->fraction() << " and rate " << pRate->rate() << "kHz, pure " << pRate->pureRate() << "kHz" << std::endl;
 		// Print the name
-		output << std::setw(23) << pRate->trigger().name();
+		output << std::setw(23) << trigger.name();
 
 		// Print the thresholds
 		std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( trigger );
 		for( size_t thresholdNumber=0; thresholdNumber<4; ++thresholdNumber )
 		{
-			float threshold;
-			if( thresholdNames.size()>thresholdNumber ) threshold=trigger.parameter(thresholdNames[thresholdNumber]);
-			else threshold=-1;
+			if( thresholdNames.size()>thresholdNumber ) output << delimeter << std::setw(7) << trigger.parameter(thresholdNames[thresholdNumber]);
+			else output << delimeter << std::setw(7) << " ";
+		}
 
-			output << " " << std::setw(7) << threshold;
+		// If there are offline thresholds to print, print those as well.
+		const auto iFindResult=offlineThresholdStrings.find( trigger.name() );
+		if( iFindResult!=offlineThresholdStrings.end() )
+		{
+			output << iFindResult->second;
 		}
 
 		// Print the rates
-		output << " " << std::setw(15) << pRate->rate();
-		output << " " << std::setw(15) << pRate->rateError();
-		output << " " << std::setw(11) << pRate->pureRate();
-		output << " " << std::setw(11) << pRate->pureRateError();
+		output << delimeter << std::setw(15) << pRate->rate();
+		output << delimeter << std::setw(15) << pRate->rateError();
+		output << delimeter << std::setw(11) << pRate->pureRate();
+		output << delimeter << std::setw(11) << pRate->pureRateError();
 
 		totalNoOverlaps+=pRate->rate();
 		totalPure+=pRate->pureRate();
@@ -291,9 +321,14 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 	}
 
 	output << "---------------------------------------------------------------------------------------------------------------" << "\n"
-			<< " Total L1 Rate (with overlaps)    = " << std::setw(8) << menuRates.totalRate() << "kHz +/- " << menuRates.totalRateError() << "\n"
-			<< " Total L1 Rate (without overlaps) = " << std::setw(8) << totalNoOverlaps << "kHz" << "\n"
-			<< " Total L1 Rate (pure triggers)    = " << std::setw(8) << totalPure << "kHz" << std::endl;
+			<< " Total L1 Rate (with overlaps)    = " << delimeter << std::setw(8) << menuRates.totalRate() << delimeter << " +/- " << delimeter << menuRates.totalRateError() << delimeter << " kHz" << "\n"
+			<< " Total L1 Rate (without overlaps) = " << delimeter << std::setw(8) << totalNoOverlaps << delimeter << " kHz" << "\n"
+			<< " Total L1 Rate (pure triggers)    = " << delimeter << std::setw(8) << totalPure << delimeter << " kHz" << std::endl;
+}
+
+void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates, const l1menu::IMenuRate& offlineThresholds )
+{
+	return dumpTriggerRates( output, menuRates, &offlineThresholds );
 }
 
 void l1menu::tools::dumpTriggerMenu( std::ostream& output, const l1menu::TriggerMenu& menu )
