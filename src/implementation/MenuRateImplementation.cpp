@@ -3,6 +3,9 @@
 #include <string>
 #include <utility>
 #include <cmath>
+#include <stdexcept>
+#include <fstream>
+#include <iostream>
 #include "l1menu/ITrigger.h"
 #include "l1menu/ICachedTrigger.h"
 #include "l1menu/ITriggerRate.h"
@@ -10,6 +13,8 @@
 #include "l1menu/ISample.h"
 #include "l1menu/IEvent.h"
 #include "TriggerRateImplementation.h"
+#include "l1menu/tools/XMLFile.h"
+#include "l1menu/tools/XMLElement.h"
 
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {
@@ -80,6 +85,11 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 
 }
 
+l1menu::implementation::MenuRateImplementation::MenuRateImplementation()
+{
+	// No operation.
+}
+
 float l1menu::implementation::MenuRateImplementation::weightOfAllEvents() const
 {
 	return weightOfAllEvents_;
@@ -135,4 +145,42 @@ const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRate
 	}
 
 	return baseClassReferences_;
+}
+
+void l1menu::implementation::MenuRateImplementation::save( const std::string& filename ) const
+{
+	std::ofstream outputFile( filename );
+	if( !outputFile.is_open() ) throw std::runtime_error( "Unable to open file "+filename+" to save the MenuRate" );
+	return save( outputFile );
+}
+
+void l1menu::implementation::MenuRateImplementation::save( std::ostream& outputStream ) const
+{
+	l1menu::tools::XMLFile outputFile;
+
+	l1menu::tools::XMLElement rootElement=outputFile.rootElement();
+//	xercesc::DOMElement* pRootElement=outputFile.rootElement();
+//	xercesc::DOMElement* pMenuRateElement=pRootElement->createElement( XercesString( "IMenuRate" ).get() );
+//	pMenuRateElement->setAttribute( XercesString( "version" ).get(), XercesString( "0" ).get() );
+//	pRootElement->appendChild( pMenuRateElement );
+
+//	xercesc::DOMText* catDataVal=pImple->pDocument_->createTextNode( XercesString( "XML Parsing Tools" ).get() );
+//	catElem->appendChild( catDataVal );
+
+	outputFile.outputToStream( outputStream );
+}
+
+std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename )
+{
+	l1menu::tools::XMLFile inputFile( filename );
+	//inputFile.outputToStream( std::cout );
+
+
+	//std::cout << "Loaded file. Root tag name is " << l1menu::implementation::XMLFile::NativeString( inputFile.rootElement()->getTagName() ).get() << std::endl;
+	std::cout << "Loaded file. Root tag name is " << inputFile.rootElement().name() << std::endl;
+	std::unique_ptr<l1menu::IMenuRate> pReturnValue( new l1menu::implementation::MenuRateImplementation );
+
+
+
+	return pReturnValue;
 }

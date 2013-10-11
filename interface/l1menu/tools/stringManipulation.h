@@ -24,6 +24,18 @@ namespace l1menu
 		 */
 		float convertStringToFloat( const std::string& string );
 
+		/** @brief Converts the entire string to an int or throws an exception.
+		 *
+		 * @param[in] string    The string to convert.
+		 * @return              The int that the string represents, if every character could
+		 *                      be converted. If there are any problems a std::runtime_error is
+		 *                      thrown.
+		 *
+		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+		 * @date 08/Oct/2013
+		 */
+		int convertStringToInt( const std::string& string );
+
 		/** Splits a string into individual parts delimited by whitespace.
 		 *
 		 * Whitespace is defined as any of "\x20\x09\x0D\x0A", i.e. space, tab, carriage return

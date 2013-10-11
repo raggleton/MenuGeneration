@@ -5,14 +5,20 @@
 #include <vector>
 #include "l1menu/TriggerTable.h"
 
+//
 // Forward declarations
+//
 namespace l1menu
 {
 	class ITrigger;
 	class L1TriggerDPGEvent;
 	class MenuFitter;
 	class MenuScan;
-}
+	namespace tools
+	{
+		class XMLElement;
+	} // end of namespace tools
+} // end of namespace l1menu
 
 namespace l1menu
 {
@@ -51,6 +57,9 @@ namespace l1menu
 		bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
 
 		virtual void loadMenuFromFile( const std::string& filename );
+		void saveMenuToFile( const std::string& filename ) const;
+		void saveToXML( l1menu::tools::XMLElement& parentElement ) const;
+		void restoreFromXML( const l1menu::tools::XMLElement& parentElement );
 	protected:
 		void loadMenuInOldFormat( std::ifstream& file );
 		/** This takes a single line from the old format file, but split into the different columns. */

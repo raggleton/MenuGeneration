@@ -140,17 +140,18 @@ int main( int argc, char* argv[] )
 				std::unique_ptr<TFile,void(*)(TFile*)> pRootOfflineOutputFile( new TFile( "scaledOfflineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
 				for( size_t triggerNumber=0; triggerNumber<pMenuFitter->menu().numberOfTriggers(); ++triggerNumber )
 				{
-					l1menu::TriggerRatePlot& originalPlot=const_cast<l1menu::TriggerRatePlot&>(pMenuFitter->triggerRatePlot(triggerNumber));
+					const l1menu::TriggerRatePlot& originalPlot=pMenuFitter->triggerRatePlot(triggerNumber);
 					std::unique_ptr<l1menu::TriggerRatePlot> pScaledPlot=muonAndMCScaling.scaleTriggerRatePlot( originalPlot );
 					std::unique_ptr<l1menu::TriggerRatePlot> pOfflinePlot=onlineToOfflineScaling.scaleTriggerRatePlot( *pScaledPlot );
-					originalPlot.getPlot()->SetDirectory( pOriginalOutputFile.get() );
+					const_cast<l1menu::TriggerRatePlot&>(originalPlot).getPlot()->SetDirectory( pOriginalOutputFile.get() );
 					pScaledPlot->getPlot()->SetDirectory( pRootOnlineOutputFile.get() );
 					pOfflinePlot->getPlot()->SetDirectory( pRootOfflineOutputFile.get() );
-					originalPlot.relinquishOwnershipOfPlot();
+					const_cast<l1menu::TriggerRatePlot&>(originalPlot).relinquishOwnershipOfPlot();
 					pScaledPlot->relinquishOwnershipOfPlot();
 					pOfflinePlot->relinquishOwnershipOfPlot();
 				}
 
+				throw std::runtime_error( "Can't be arsed waiting for the fit");
 
 				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
 

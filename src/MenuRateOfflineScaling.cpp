@@ -199,7 +199,7 @@ l1menu::MenuRateOfflineScaling::MenuRateOfflineScaling( std::shared_ptr<const l1
 		} // end of try block
 		catch( std::runtime_error& exception )
 		{
-			std::cerr << "Some error occured while processing the line \"" << buffer << "\":" << exception.what() << std::endl;
+			std::cerr << "Some error occurred while processing the line \"" << buffer << "\":" << exception.what() << std::endl;
 		}
 	}
 	inputFile.close();

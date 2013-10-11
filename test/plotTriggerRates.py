@@ -36,7 +36,7 @@ class TriggerRate(object):
 		self.axisTitleOffset=None
 
 	def add( self, histogram, legendTitle=None ):
-		availableColours=[2,4,8,9,11,41,44,46]
+		availableColours=[1,2,4,8,9,11,41,44,46]
 		if legendTitle==None: legendTitle=histogram.GetTitle()
 		self.histograms.append( histogram.Clone() )
 		# Make sure the copy has a globally unique name
@@ -52,6 +52,7 @@ class TriggerRate(object):
 		if self.axisTitleOffset==None:
 			self.axisTitleOffset=self.histograms[-1].GetYaxis().GetTitleOffset()
 		self.histograms[-1].GetYaxis().SetTitle( "Rate/kHz" )
+		self.histograms[-1].GetXaxis().SetTitle( "Offline threshold/GeV" )
 		self.legend.AddEntry( self.histograms[-1], legendTitle )
 		# See if the histogram maximum is larger than the current maximum
 		bin=self.histograms[-1].GetMaximumBin()
@@ -160,7 +161,7 @@ class TriggerRateComparisonPlot(object):
 		self.instantiationCount=TriggerRateComparisonPlot.instantiationCount
 		TriggerRateComparisonPlot.instantiationCount+=1
 
-		splitPoint=0.33
+		splitPoint=0.001#0.33
 		self.padRatio=(1-splitPoint)/splitPoint
 
 		self.canvas=TCanvas()
@@ -171,7 +172,7 @@ class TriggerRateComparisonPlot(object):
 		self.ratioPad.Draw()
 		self.ratioPad.SetTopMargin(0)
 		self.ratioPad.SetBottomMargin( self.ratePad.GetBottomMargin()*self.padRatio*1.1 ) # A little 10% extra because some is cut off
-		self.ratePad.SetBottomMargin(0.1) # was zero before I wanted to see the axis
+		self.ratePad.SetBottomMargin(0.15) # was zero before I wanted to see the axis
 
 		self.ratePlot=TriggerRate(self.ratePad)
 		self.ratioPlot=TriggerRateRatio(self.ratioPad)
@@ -214,7 +215,8 @@ triggers = ["SingleEG","SingleIsoEG","SingleMu",
 "isoEG_Mu","isoMu_EG","isoMu_Tau","SingleJetC","DoubleJet",
 "SingleMu_CJet",
 "SingleIsoEG_HTM","SingleMu_HTM","HTM","HTT",
-"QuadJetC","SixJet","SingleIsoEG_CJet","SingleTau","isoEG_Tau"
+"QuadJetC",#"SixJet",
+"SingleIsoEG_CJet","SingleTau","isoEG_Tau"
 ]
 
 plots = []
@@ -254,6 +256,7 @@ for trigger in triggers:
 	plots.append( TriggerRateComparisonPlot() )
 	for fileAndTitle in filesAndTitles:
 		plots[-1].addByTriggerName( fileAndTitle[0], trigger, fileAndTitle[1] )
+	plots[-1].ratePlot.drawLegend=False
 	plots[-1].draw()
 	# Add an extra member to say where to save, in case I choose to do so later
 	plots[-1].saveFilename=trigger+"_rateVsThreshold.pdf"
