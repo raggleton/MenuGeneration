@@ -10,7 +10,7 @@ l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( co
 	  weightSquaredOfEventsPassingThisTrigger_(weightSquaredOfEventsPassingThisTrigger),
 	  weightOfEventsOnlyPassingThisTrigger_(weightOfEventsOnlyPassingThisTrigger),
 	  weightSquaredOfEventsOnlyPassingThisTrigger_(weightSquaredOfEventsOnlyPassingThisTrigger),
-	  menuRate_(menuRate)
+	  pMenuRate_(&menuRate)
 {
 	pTrigger_=std::move( l1menu::TriggerTable::instance().copyTrigger(trigger) );
 }
@@ -21,7 +21,7 @@ l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( Tr
 	  weightSquaredOfEventsPassingThisTrigger_(otherTriggerRate.weightSquaredOfEventsPassingThisTrigger_),
 	  weightOfEventsOnlyPassingThisTrigger_(otherTriggerRate.weightOfEventsOnlyPassingThisTrigger_),
 	  weightSquaredOfEventsOnlyPassingThisTrigger_(otherTriggerRate.weightSquaredOfEventsOnlyPassingThisTrigger_),
-	  menuRate_(otherTriggerRate.menuRate_)
+	  pMenuRate_(otherTriggerRate.pMenuRate_)
 {
 	// No operation besides the initialiser list
 }
@@ -33,7 +33,7 @@ l1menu::implementation::TriggerRateImplementation& l1menu::implementation::Trigg
 	weightSquaredOfEventsPassingThisTrigger_=otherTriggerRate.weightSquaredOfEventsPassingThisTrigger_;
 	weightOfEventsOnlyPassingThisTrigger_=otherTriggerRate.weightOfEventsOnlyPassingThisTrigger_;
 	weightSquaredOfEventsOnlyPassingThisTrigger_=otherTriggerRate.weightSquaredOfEventsOnlyPassingThisTrigger_;
-	// I can't change the menuRate_ reference, but that should already be set to the right one anyway.
+	pMenuRate_=otherTriggerRate.pMenuRate_;
 	return *this;
 }
 
@@ -49,40 +49,40 @@ const l1menu::ITrigger& l1menu::implementation::TriggerRateImplementation::trigg
 
 float l1menu::implementation::TriggerRateImplementation::fraction() const
 {
-	return weightOfEventsPassingThisTrigger_/menuRate_.weightOfAllEvents();
+	return weightOfEventsPassingThisTrigger_/pMenuRate_->weightOfAllEvents();
 }
 
 float l1menu::implementation::TriggerRateImplementation::fractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsPassingThisTrigger_)/menuRate_.weightOfAllEvents();
+	return std::sqrt(weightSquaredOfEventsPassingThisTrigger_)/pMenuRate_->weightOfAllEvents();
 }
 
 float l1menu::implementation::TriggerRateImplementation::rate() const
 {
-	return fraction()*menuRate_.scaling();
+	return fraction()*pMenuRate_->scaling();
 }
 
 float l1menu::implementation::TriggerRateImplementation::rateError() const
 {
-	return fractionError()*menuRate_.scaling();
+	return fractionError()*pMenuRate_->scaling();
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureFraction() const
 {
-	return weightOfEventsOnlyPassingThisTrigger_/menuRate_.weightOfAllEvents();
+	return weightOfEventsOnlyPassingThisTrigger_/pMenuRate_->weightOfAllEvents();
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureFractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsOnlyPassingThisTrigger_)/menuRate_.weightOfAllEvents();
+	return std::sqrt(weightSquaredOfEventsOnlyPassingThisTrigger_)/pMenuRate_->weightOfAllEvents();
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureRate() const
 {
-	return pureFraction()*menuRate_.scaling();
+	return pureFraction()*pMenuRate_->scaling();
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureRateError() const
 {
-	return pureFractionError()*menuRate_.scaling();
+	return pureFractionError()*pMenuRate_->scaling();
 }

@@ -51,7 +51,7 @@ namespace l1menu
 			float weightSquaredOfEventsPassingThisTrigger_;
 			float weightOfEventsOnlyPassingThisTrigger_;
 			float weightSquaredOfEventsOnlyPassingThisTrigger_;
-			const MenuRateImplementation& menuRate_;
+			const MenuRateImplementation* pMenuRate_;
 		};
 
 
