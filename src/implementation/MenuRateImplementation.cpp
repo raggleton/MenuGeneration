@@ -16,6 +16,9 @@
 #include "l1menu/tools/XMLFile.h"
 #include "l1menu/tools/XMLElement.h"
 
+//extern template convertToXML<l1menu::ITriggerRate>( const l1menu::ITriggerRate& object, l1menu::tools::XMLElement& parent );
+
+
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {
 
@@ -159,15 +162,38 @@ void l1menu::implementation::MenuRateImplementation::save( std::ostream& outputS
 	l1menu::tools::XMLFile outputFile;
 
 	l1menu::tools::XMLElement rootElement=outputFile.rootElement();
-//	xercesc::DOMElement* pRootElement=outputFile.rootElement();
-//	xercesc::DOMElement* pMenuRateElement=pRootElement->createElement( XercesString( "IMenuRate" ).get() );
-//	pMenuRateElement->setAttribute( XercesString( "version" ).get(), XercesString( "0" ).get() );
-//	pRootElement->appendChild( pMenuRateElement );
-
-//	xercesc::DOMText* catDataVal=pImple->pDocument_->createTextNode( XercesString( "XML Parsing Tools" ).get() );
-//	catElem->appendChild( catDataVal );
+	convertToXML( rootElement );
 
 	outputFile.outputToStream( outputStream );
+}
+
+void l1menu::implementation::MenuRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
+{
+	l1menu::tools::XMLElement thisElement=parentElement.createChild( "IMenuRate" );
+	thisElement.setAttribute( "formatVersion", 0 );
+
+	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightOfAllEvents" );
+	parameterElement.setValue( weightOfAllEvents_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightOfEventsPassingAnyTrigger" );
+	parameterElement.setValue( weightOfEventsPassingAnyTrigger_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingAnyTrigger" );
+	parameterElement.setValue( weightSquaredOfEventsPassingAnyTrigger_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "scaling" );
+	parameterElement.setValue( scaling_ );
+
+	// Loop over all of the trigger rates and add those to the file
+	for( const auto& triggerRate : triggerRates_ )
+	{
+		triggerRate.convertToXML( thisElement );
+	}
+
 }
 
 std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename )

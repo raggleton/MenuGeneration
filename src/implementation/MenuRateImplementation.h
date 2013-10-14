@@ -14,6 +14,10 @@ namespace l1menu
 	class ITriggerRate;
 	class TriggerMenu;
 	class ISample;
+	namespace tools
+	{
+		class XMLElement;
+	}
 }
 
 
@@ -38,6 +42,7 @@ namespace l1menu
 			float scaling() const;
 			virtual void save( const std::string& filename ) const;
 			virtual void save( std::ostream& outputStream ) const;
+			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
 
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;

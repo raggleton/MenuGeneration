@@ -12,7 +12,7 @@
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/MenuRateMuonScaling.h"
 #include "l1menu/MenuRateOfflineScaling.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/stringManipulation.h"
 #include "l1menu/tools/CommandLineParser.h"
 #include "l1menu/scalings/MuonAndMCScaling.h"
@@ -129,44 +129,45 @@ int main( int argc, char* argv[] )
 			std::cout << "Fitting menu for a rate of " << totalRate << "kHz..."; std::cout.flush();
 			try
 			{
-				l1menu::scalings::MuonAndMCScaling muonAndMCScaling( muonScalingFilename,
-						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsMCMC_FallbackThr1_rates.root",
-						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsDataMC_FallbackThr1_rates.root" );
-				l1menu::scalings::OnlineToOfflineScaling onlineToOfflineScaling( offlineScalingFilename );
-
-				// Use a smart pointer with a custom deleter that will close the file properly.
-				std::unique_ptr<TFile,void(*)(TFile*)> pOriginalOutputFile( new TFile( "originalHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-				std::unique_ptr<TFile,void(*)(TFile*)> pRootOnlineOutputFile( new TFile( "scaledOnlineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-				std::unique_ptr<TFile,void(*)(TFile*)> pRootOfflineOutputFile( new TFile( "scaledOfflineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-				for( size_t triggerNumber=0; triggerNumber<pMenuFitter->menu().numberOfTriggers(); ++triggerNumber )
-				{
-					const l1menu::TriggerRatePlot& originalPlot=pMenuFitter->triggerRatePlot(triggerNumber);
-					std::unique_ptr<l1menu::TriggerRatePlot> pScaledPlot=muonAndMCScaling.scaleTriggerRatePlot( originalPlot );
-					std::unique_ptr<l1menu::TriggerRatePlot> pOfflinePlot=onlineToOfflineScaling.scaleTriggerRatePlot( *pScaledPlot );
-					const_cast<l1menu::TriggerRatePlot&>(originalPlot).getPlot()->SetDirectory( pOriginalOutputFile.get() );
-					pScaledPlot->getPlot()->SetDirectory( pRootOnlineOutputFile.get() );
-					pOfflinePlot->getPlot()->SetDirectory( pRootOfflineOutputFile.get() );
-					const_cast<l1menu::TriggerRatePlot&>(originalPlot).relinquishOwnershipOfPlot();
-					pScaledPlot->relinquishOwnershipOfPlot();
-					pOfflinePlot->relinquishOwnershipOfPlot();
-				}
-
-				throw std::runtime_error( "Can't be arsed waiting for the fit");
-
+//				l1menu::scalings::MuonAndMCScaling muonAndMCScaling( muonScalingFilename,
+//						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsMCMC_FallbackThr1_rates.root",
+//						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsDataMC_FallbackThr1_rates.root" );
+//				l1menu::scalings::OnlineToOfflineScaling onlineToOfflineScaling( offlineScalingFilename );
+//
+//				// Use a smart pointer with a custom deleter that will close the file properly.
+//				std::unique_ptr<TFile,void(*)(TFile*)> pOriginalOutputFile( new TFile( "originalHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+//				std::unique_ptr<TFile,void(*)(TFile*)> pRootOnlineOutputFile( new TFile( "scaledOnlineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+//				std::unique_ptr<TFile,void(*)(TFile*)> pRootOfflineOutputFile( new TFile( "scaledOfflineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
+//				for( size_t triggerNumber=0; triggerNumber<pMenuFitter->menu().numberOfTriggers(); ++triggerNumber )
+//				{
+//					const l1menu::TriggerRatePlot& originalPlot=pMenuFitter->triggerRatePlot(triggerNumber);
+//					std::unique_ptr<l1menu::TriggerRatePlot> pScaledPlot=muonAndMCScaling.scaleTriggerRatePlot( originalPlot );
+//					std::unique_ptr<l1menu::TriggerRatePlot> pOfflinePlot=onlineToOfflineScaling.scaleTriggerRatePlot( *pScaledPlot );
+//					const_cast<l1menu::TriggerRatePlot&>(originalPlot).getPlot()->SetDirectory( pOriginalOutputFile.get() );
+//					pScaledPlot->getPlot()->SetDirectory( pRootOnlineOutputFile.get() );
+//					pOfflinePlot->getPlot()->SetDirectory( pRootOfflineOutputFile.get() );
+//					const_cast<l1menu::TriggerRatePlot&>(originalPlot).relinquishOwnershipOfPlot();
+//					pScaledPlot->relinquishOwnershipOfPlot();
+//					pOfflinePlot->relinquishOwnershipOfPlot();
+//				}
+//
+//				throw std::runtime_error( "Can't be arsed waiting for the fit");
+//
+//				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
+//
+//				std::shared_ptr<const l1menu::IMenuRate> pScaledRates;
+//				if( !muonScalingFilename.empty() )
+//				{
+//					pScaledRates.reset( new l1menu::MenuRateMuonScaling( pRates, muonScalingFilename, *pMenuFitter ) );
+//				}
+//				else pScaledRates=pRates;
+//
+//				std::shared_ptr<const l1menu::IMenuRate> pOfflineRates;
+//				if( !offlineScalingFilename.empty() )
+//				{
+//					pOfflineRates.reset( new l1menu::MenuRateOfflineScaling( pScaledRates, offlineScalingFilename ) );
+//				}
 				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
-
-				std::shared_ptr<const l1menu::IMenuRate> pScaledRates;
-				if( !muonScalingFilename.empty() )
-				{
-					pScaledRates.reset( new l1menu::MenuRateMuonScaling( pRates, muonScalingFilename, *pMenuFitter ) );
-				}
-				else pScaledRates=pRates;
-
-				std::shared_ptr<const l1menu::IMenuRate> pOfflineRates;
-				if( !offlineScalingFilename.empty() )
-				{
-					pOfflineRates.reset( new l1menu::MenuRateOfflineScaling( pScaledRates, offlineScalingFilename ) );
-				}
 
 				// If the user has specified filenames to save to, save the result to there
 				if( !outputPrefix.empty() )
@@ -177,7 +178,8 @@ int main( int argc, char* argv[] )
 					if( !outputFile.is_open() ) std::cerr << "ERROR unable to open " << outputFilename.str() << " to store the output" << std::endl;
 					else
 					{
-						l1menu::tools::dumpTriggerRates( outputFile, *pScaledRates, pOfflineRates.get() );
+//						l1menu::tools::dumpTriggerRates( outputFile, *pScaledRates, pOfflineRates.get() );
+						pRates->save( outputFile );
 						std::cout << "Output saved to " << outputFilename.str() << std::endl;
 					}
 				}
@@ -185,7 +187,8 @@ int main( int argc, char* argv[] )
 				else
 				{
 					std::cout << "outputprefix not specified so dumping results to standard output" << "\n";
-					l1menu::tools::dumpTriggerRates( std::cout, *pScaledRates, pOfflineRates.get() );
+//					l1menu::tools::dumpTriggerRates( std::cout, *pScaledRates, pOfflineRates.get() );
+					pRates->save( std::cout );
 				}
 			}
 			catch( std::exception& error )

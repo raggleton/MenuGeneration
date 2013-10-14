@@ -1,25 +1,66 @@
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 
 #include <TFile.h>
 #include "l1menu/ISample.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/CommandLineParser.h"
+#include "l1menu/tools/fileIO.h"
+
+void printUsage( const std::string& executableName, std::ostream& output=std::cout )
+{
+	output << "Usage:" << "\n"
+			<< "\t" << executableName << " [--output <output filename>] [--format < CSV | OLD | XML >] <sample filename> <menu filename>" << "\n"
+			<< "\n"
+			<< "\t" << executableName << " --help" << "\n"
+			<< "\t" << "\t" << "prints this help message" << "\n"
+			<< std::endl;
+}
 
 int main( int argc, char* argv[] )
 {
-	if( argc!=3 )
+	std::string sampleFilename;
+	std::string menuFilename;
+	std::string outputFilename;
+	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+
+	l1menu::tools::CommandLineParser commandLineParser;
+	try
 	{
-		std::string executableName=argv[0];
-		size_t lastSlashPosition=executableName.find_last_of('/');
-		if( lastSlashPosition!=std::string::npos ) executableName=executableName.substr( lastSlashPosition+1, std::string::npos );
-		std::cerr << "   Usage: " << executableName << " <sample filename> <menu filename>" << std::endl;
+		commandLineParser.addOption( "output", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "format", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
+		commandLineParser.parse( argc, argv );
+
+		if( commandLineParser.optionHasBeenSet( "help" ) )
+		{
+			printUsage( commandLineParser.executableName() );
+			return 0;
+		}
+
+		if( commandLineParser.nonOptionArguments().size()!=2 ) throw std::runtime_error( "Incorrect number of arguments" );
+		if( commandLineParser.optionHasBeenSet( "output" ) ) outputFilename=commandLineParser.optionArguments("output").back();
+		if( commandLineParser.optionHasBeenSet( "format" ) )
+		{
+			std::string formatString=commandLineParser.optionArguments("format").back();
+			if( formatString=="XML" ) fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+			else if( formatString=="OLD" ) fileFormat=l1menu::tools::FileFormat::OLDFORMAT;
+			else if( formatString=="CSV" ) fileFormat=l1menu::tools::FileFormat::CSVFORMAT;
+			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
+		}
+
+		sampleFilename=commandLineParser.nonOptionArguments()[0];
+		menuFilename=commandLineParser.nonOptionArguments()[1];
+	} // end of try block
+	catch( std::exception& error )
+	{
+		std::cerr << "Error parsing the command line: " << error.what() << std::endl;
+		printUsage( commandLineParser.executableName(), std::cerr );
 		return -1;
 	}
 
-	std::string sampleFilename=argv[1];
-	std::string menuFilename=argv[2];
 
 	try
 	{
@@ -44,7 +85,23 @@ int main( int argc, char* argv[] )
 
 		std::shared_ptr<const l1menu::IMenuRate> pRates=pSample->rate(menu);
 
-		l1menu::tools::dumpTriggerRates( std::cout, *pRates );
+		if( !outputFilename.empty() )
+		{
+			std::ofstream outputFile( outputFilename );
+			if( !outputFile.is_open() ) std::cerr << "ERROR unable to open " << outputFilename << " to store the output" << std::endl;
+			else
+			{
+				l1menu::tools::dumpTriggerRates( outputFile, *pRates, fileFormat );
+				std::cout << "Output saved to " << outputFilename << std::endl;
+			}
+		}
+		// Otherwise dump the information to standard output
+		else
+		{
+			std::cout << "outputprefix not specified so dumping results to standard output" << "\n";
+			l1menu::tools::dumpTriggerRates( std::cout, *pRates, fileFormat );
+		}
+
 	}
 	catch( std::exception& error )
 	{

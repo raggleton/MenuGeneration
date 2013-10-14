@@ -18,8 +18,7 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 			<< "\t" << "\t" << "In future this program will load a MenuRate from an xml file and perform scaling on it." << "\n"
 			<< "\n"
 			<< "\t" << executableName << " --help" << "\n"
-			<< "\t" << "\t" << "prints this help message"
-			<< "\n"
+			<< "\t" << "\t" << "prints this help message" << "\n"
 			<< std::endl;
 }
 

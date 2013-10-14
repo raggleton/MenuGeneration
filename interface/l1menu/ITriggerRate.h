@@ -8,7 +8,11 @@
 //
 namespace l1menu
 {
-	class ITrigger;
+	class ITriggerDescription;
+	namespace tools
+	{
+		class XMLElement;
+	}
 }
 
 namespace l1menu
@@ -27,7 +31,7 @@ namespace l1menu
 		 * N.B. This trigger is a copy of whatever was used to calculate the rate. Changing one will
 		 * have no affect on the other.
 		 */
-		virtual const l1menu::ITrigger& trigger() const = 0;
+		virtual const l1menu::ITriggerDescription& trigger() const = 0;
 
 		/** @brief The fraction of events that this trigger passed, so before applying any scaling. */
 		virtual float fraction() const = 0;
@@ -44,6 +48,9 @@ namespace l1menu
 		/** @brief The pure rate, so pureFraction multiplied by the scaling. */
 		virtual float pureRate() const = 0;
 		virtual float pureRateError() const = 0;
+
+		/** @brief Adds an XML element to the one provided that describes this object. */
+		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
 	};
 
 } // end of namespace l1menu

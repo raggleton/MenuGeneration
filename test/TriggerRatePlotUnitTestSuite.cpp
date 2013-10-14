@@ -47,6 +47,7 @@ protected:
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerRatePlot.h"
 #include "l1menu/tools/tools.h"
+#include "l1menu/tools/fileIO.h"
 #include "TestParameters.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TriggerRatePlotUnitTestSuite);

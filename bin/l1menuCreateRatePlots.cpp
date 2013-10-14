@@ -7,6 +7,7 @@
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/tools/tools.h"
+#include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/CommandLineParser.h"
 
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )

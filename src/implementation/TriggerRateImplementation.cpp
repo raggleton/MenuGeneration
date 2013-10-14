@@ -4,6 +4,8 @@
 #include "MenuRateImplementation.h"
 #include "l1menu/TriggerTable.h"
 #include "l1menu/ITrigger.h"
+#include "l1menu/tools/XMLElement.h"
+#include "l1menu/tools/fileIO.h"
 
 l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightSquaredOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, float weightSquaredOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate )
 	: weightOfEventsPassingThisTrigger_(weightOfEventsPassingThisTrigger),
@@ -42,7 +44,7 @@ l1menu::implementation::TriggerRateImplementation::~TriggerRateImplementation()
 	// No operation
 }
 
-const l1menu::ITrigger& l1menu::implementation::TriggerRateImplementation::trigger() const
+const l1menu::ITriggerDescription& l1menu::implementation::TriggerRateImplementation::trigger() const
 {
 	return *pTrigger_;
 }
@@ -85,4 +87,29 @@ float l1menu::implementation::TriggerRateImplementation::pureRate() const
 float l1menu::implementation::TriggerRateImplementation::pureRateError() const
 {
 	return pureFractionError()*pMenuRate_->scaling();
+}
+
+void l1menu::implementation::TriggerRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
+{
+	l1menu::tools::XMLElement thisElement=parentElement.createChild( "ITriggerRate" );
+	thisElement.setAttribute( "formatVersion", 0 );
+
+	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightOfEventsPassingThisTrigger" );
+	parameterElement.setValue( weightOfEventsPassingThisTrigger_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingThisTrigger" );
+	parameterElement.setValue( weightSquaredOfEventsPassingThisTrigger_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightOfEventsOnlyPassingThisTrigger" );
+	parameterElement.setValue( weightOfEventsOnlyPassingThisTrigger_ );
+
+	parameterElement=thisElement.createChild( "parameter" );
+	parameterElement.setAttribute( "name", "weightSquaredOfEventsOnlyPassingThisTrigger" );
+	parameterElement.setValue( weightSquaredOfEventsOnlyPassingThisTrigger_ );
+
+	l1menu::tools::convertToXML( *pTrigger_, thisElement );
+	//pTrigger_->convertToXML( thisElement );
 }

@@ -36,7 +36,7 @@ namespace l1menu
 			virtual ~TriggerRateImplementation();
 
 			// Methods required by the l1menu::ITriggerRate interface
-			virtual const l1menu::ITrigger& trigger() const;
+			virtual const l1menu::ITriggerDescription& trigger() const;
 			virtual float fraction() const;
 			virtual float fractionError() const;
 			virtual float rate() const;
@@ -45,6 +45,7 @@ namespace l1menu
 			virtual float pureFractionError() const;
 			virtual float pureRate() const;
 			virtual float pureRateError() const;
+			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
 			float weightOfEventsPassingThisTrigger_;
