@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "l1menu/ReducedSample.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/fileIO.h"
 
 int main( int argc, char* argv[] )

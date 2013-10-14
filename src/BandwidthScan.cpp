@@ -9,7 +9,7 @@
 #include "l1menu/ITriggerRate.h"
 #include "l1menu/ITrigger.h"
 #include "l1menu/tools/stringManipulation.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/fileIO.h"
 #include "implementation/TriggerMenuWithConstraints.h"
 

@@ -4,7 +4,7 @@
 #include "l1menu/ISample.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/BandwidthScan.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/stringManipulation.h"
 #include "l1menu/tools/CommandLineParser.h"

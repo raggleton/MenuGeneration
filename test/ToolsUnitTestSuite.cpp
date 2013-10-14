@@ -30,7 +30,7 @@ protected:
 #include <cppunit/config/SourcePrefix.h>
 #include <iostream>
 #include <stdexcept>
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ToolsUnitTestSuite);
 

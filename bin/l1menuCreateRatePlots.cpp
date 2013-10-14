@@ -6,7 +6,7 @@
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/CommandLineParser.h"
 

@@ -6,7 +6,7 @@
 #include "l1menu/IEvent.h"
 #include "l1menu/ISample.h"
 #include "l1menu/TriggerTable.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/stringManipulation.h"
 #include <TH1F.h>
 #include <sstream>

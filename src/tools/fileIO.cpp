@@ -17,7 +17,7 @@
 #include "l1menu/FullSample.h"
 #include "l1menu/ReducedSample.h"
 #include "l1menu/tools/XMLFile.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/XMLElement.h"
 
 namespace // Unnamed namespace for things only used in this file

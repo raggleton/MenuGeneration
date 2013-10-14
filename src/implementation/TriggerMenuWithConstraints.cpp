@@ -8,7 +8,7 @@
 #include "l1menu/TriggerRatePlot.h"
 #include "l1menu/ISample.h"
 #include "l1menu/tools/stringManipulation.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 
 l1menu::implementation::TriggerMenuWithConstraints::~TriggerMenuWithConstraints()
 {
