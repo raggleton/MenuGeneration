@@ -387,7 +387,7 @@ l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::ITriggerRat
 
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::ITriggerDescription& object, l1menu::tools::XMLElement& parent )
 {
-	l1menu::tools::XMLElement thisElement=parent.createChild( "ITriggerDescription" );
+	l1menu::tools::XMLElement thisElement=parent.createChild( "Trigger" );
 	thisElement.setAttribute( "formatVersion", 0 );
 
 	thisElement.createChild( "name" ).setValue( object.name() );

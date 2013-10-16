@@ -217,12 +217,7 @@ std::string l1menu::tools::XMLElement::getValue() const
 			xercesc::DOMText* pValueNode=dynamic_cast<xercesc::DOMText*>(pChild);
 			if( pValueNode!=nullptr )
 			{
-				try
-				{
-					::NativeString nativeString( pValueNode->getData() );
-					std::cout << "Value is " << nativeString.get() << "\n";
-					return nativeString.get();
-				}
+				try { return ::NativeString( pValueNode->getData() ).get(); }
 				catch( xercesc::DOMException& error ) { std::cout << "error=" << ::NativeString( error.getMessage() ).get() << std::endl; }
 			}
 		}

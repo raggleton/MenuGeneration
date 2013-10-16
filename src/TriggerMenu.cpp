@@ -229,13 +229,19 @@ void l1menu::TriggerMenu::restoreFromXML( const l1menu::tools::XMLElement& paren
 	std::vector<l1menu::tools::XMLElement> triggerElements=thisElement.getChildren("Trigger");
 	for( const auto& triggerElement : triggerElements )
 	{
-		std::string triggerName=triggerElement.getAttribute("name");
-		size_t version=triggerElement.getIntAttribute("version");
+		std::vector<l1menu::tools::XMLElement> parameterElements=triggerElement.getChildren("name");
+		if( parameterElements.size()!=1 ) throw std::runtime_error( "Trigger doesn't have one and only one subelement called 'name'" );
+		std::string triggerName=parameterElements.front().getValue();
+
+		parameterElements=triggerElement.getChildren("version");
+		if( parameterElements.size()!=1 ) throw std::runtime_error( "Trigger doesn't have one and only one subelement called 'version'" );
+		size_t version=parameterElements.front().getIntValue();
+
 		std::unique_ptr<l1menu::ITrigger> pNewTrigger=triggerTable_.getTrigger( triggerName, version );
 		if( pNewTrigger==nullptr ) throw std::runtime_error( "l1menu::TriggerMenu::restoreFromXML - the file lists trigger \""+triggerName+"\" with version "+triggerElement.getAttribute("version")+" that is not registered in the TriggerTable." );
 
 		// Now loop over all of the parameters and set them
-		std::vector<l1menu::tools::XMLElement> parameterElements=triggerElement.getChildren("parameter");
+		parameterElements=triggerElement.getChildren("parameter");
 		for( const auto& parameterElement : parameterElements )
 		{
 			std::string parameterName=parameterElement.getAttribute("name");
