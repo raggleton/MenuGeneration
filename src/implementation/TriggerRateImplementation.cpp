@@ -89,27 +89,27 @@ float l1menu::implementation::TriggerRateImplementation::pureRateError() const
 	return pureFractionError()*pMenuRate_->scaling();
 }
 
-void l1menu::implementation::TriggerRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
-{
-	l1menu::tools::XMLElement thisElement=parentElement.createChild( "ITriggerRate" );
-	thisElement.setAttribute( "formatVersion", 0 );
-
-	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightOfEventsPassingThisTrigger" );
-	parameterElement.setValue( weightOfEventsPassingThisTrigger_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingThisTrigger" );
-	parameterElement.setValue( weightSquaredOfEventsPassingThisTrigger_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightOfEventsOnlyPassingThisTrigger" );
-	parameterElement.setValue( weightOfEventsOnlyPassingThisTrigger_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightSquaredOfEventsOnlyPassingThisTrigger" );
-	parameterElement.setValue( weightSquaredOfEventsOnlyPassingThisTrigger_ );
-
-	l1menu::tools::convertToXML( *pTrigger_, thisElement );
-	//pTrigger_->convertToXML( thisElement );
-}
+//void l1menu::implementation::TriggerRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
+//{
+//	l1menu::tools::XMLElement thisElement=parentElement.createChild( "ITriggerRate" );
+//	thisElement.setAttribute( "formatVersion", 0 );
+//
+//	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightOfEventsPassingThisTrigger" );
+//	parameterElement.setValue( weightOfEventsPassingThisTrigger_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingThisTrigger" );
+//	parameterElement.setValue( weightSquaredOfEventsPassingThisTrigger_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightOfEventsOnlyPassingThisTrigger" );
+//	parameterElement.setValue( weightOfEventsOnlyPassingThisTrigger_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightSquaredOfEventsOnlyPassingThisTrigger" );
+//	parameterElement.setValue( weightSquaredOfEventsOnlyPassingThisTrigger_ );
+//
+//	l1menu::tools::convertToXML( *pTrigger_, thisElement );
+//	//pTrigger_->convertToXML( thisElement );
+//}

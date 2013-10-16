@@ -76,11 +76,10 @@ int main( int argc, char* argv[] )
 		std::unique_ptr<l1menu::ISample> pSample=l1menu::tools::loadSample( sampleFilename );
 		pSample->setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
 
-		l1menu::TriggerMenu menu;
 		std::cout << "Loading menu from file " << menuFilename << std::endl;
-		menu.loadMenuFromFile( menuFilename );
+		std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( menuFilename );
 
-		l1menu::MenuRatePlots rateVersusThresholdPlots( menu );
+		l1menu::MenuRatePlots rateVersusThresholdPlots( *pMenu );
 
 		// Use a smart pointer with a custom deleter that will close the file properly.
 		std::unique_ptr<TFile,std::function<void(TFile*)>> pMyRootFile( new TFile( outputFilename.c_str(), "RECREATE" ),

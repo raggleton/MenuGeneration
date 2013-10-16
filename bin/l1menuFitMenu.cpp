@@ -45,6 +45,7 @@ int main( int argc, char* argv[] )
 	std::string outputPrefix; // A prefix for output filenames. This is optional and can be empty, in which case no files are produced.
 	std::string muonScalingFilename; // The filename of the file used to scale muon rates. Optional and can be empty.
 	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
+	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
 	std::vector<float> totalRates;
 
 	l1menu::tools::CommandLineParser commandLineParser;
@@ -55,6 +56,7 @@ int main( int argc, char* argv[] )
 		commandLineParser.addOption( "outputprefix", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "muonscaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "offlinescaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "format", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.parse( argc, argv );
 
 		if( commandLineParser.optionHasBeenSet( "help" ) )
@@ -63,11 +65,19 @@ int main( int argc, char* argv[] )
 			return 0;
 		}
 
+		if( commandLineParser.nonOptionArguments().size()<3 ) throw std::runtime_error( "Not enough command line arguments" );
 		if( commandLineParser.optionHasBeenSet( "rateplots" ) ) ratePlotsFilename=commandLineParser.optionArguments("rateplots").back();
 		if( commandLineParser.optionHasBeenSet( "outputprefix" ) ) outputPrefix=commandLineParser.optionArguments("outputprefix").back();
 		if( commandLineParser.optionHasBeenSet( "muonscaling" ) ) muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
 		if( commandLineParser.optionHasBeenSet( "offlinescaling" ) ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
-		if( commandLineParser.nonOptionArguments().size()<3 ) throw std::runtime_error( "Not enough command line arguments" );
+		if( commandLineParser.optionHasBeenSet( "format" ) )
+		{
+			std::string formatString=commandLineParser.optionArguments("format").back();
+			if( formatString=="XML" ) fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+			else if( formatString=="OLD" ) fileFormat=l1menu::tools::FileFormat::OLDFORMAT;
+			else if( formatString=="CSV" ) fileFormat=l1menu::tools::FileFormat::CSVFORMAT;
+			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
+		}
 
 		const std::vector<std::string>& arguments=commandLineParser.nonOptionArguments();
 		sampleFilename=arguments[0];
@@ -179,7 +189,7 @@ int main( int argc, char* argv[] )
 					else
 					{
 //						l1menu::tools::dumpTriggerRates( outputFile, *pScaledRates, pOfflineRates.get() );
-						pRates->save( outputFile );
+						l1menu::tools::dumpTriggerRates( outputFile, *pRates, fileFormat );
 						std::cout << "Output saved to " << outputFilename.str() << std::endl;
 					}
 				}
@@ -188,7 +198,7 @@ int main( int argc, char* argv[] )
 				{
 					std::cout << "outputprefix not specified so dumping results to standard output" << "\n";
 //					l1menu::tools::dumpTriggerRates( std::cout, *pScaledRates, pOfflineRates.get() );
-					pRates->save( std::cout );
+					l1menu::tools::dumpTriggerRates( std::cout, *pRates, fileFormat );
 				}
 			}
 			catch( std::exception& error )

@@ -45,7 +45,7 @@ namespace l1menu
 			virtual float pureFractionError() const;
 			virtual float pureRate() const;
 			virtual float pureRateError() const;
-			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
+//			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
 			float weightOfEventsPassingThisTrigger_;

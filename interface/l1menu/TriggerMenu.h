@@ -14,9 +14,11 @@ namespace l1menu
 	class L1TriggerDPGEvent;
 	class MenuFitter;
 	class MenuScan;
+	class TriggerMenu;
 	namespace tools
 	{
 		class XMLElement;
+		std::unique_ptr<l1menu::TriggerMenu> loadMenu( const std::string& filename );
 	} // end of namespace tools
 } // end of namespace l1menu
 
@@ -55,6 +57,14 @@ namespace l1menu
 		std::unique_ptr<l1menu::ITrigger> getTriggerCopy( size_t position ) const;
 
 		bool apply( const l1menu::L1TriggerDPGEvent& event ) const;
+
+	protected:
+		//
+		// All of these methods are deprecated in favour of going through the functions
+		// in l1menu::tools. Until I fully move the functionality to there I'll protect
+		// the methods and call them from the required functions.
+		//
+		friend std::unique_ptr<l1menu::TriggerMenu> l1menu::tools::loadMenu( const std::string& filename );
 
 		virtual void loadMenuFromFile( const std::string& filename );
 		void saveMenuToFile( const std::string& filename ) const;

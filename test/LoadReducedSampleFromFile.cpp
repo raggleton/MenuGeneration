@@ -47,16 +47,16 @@ int main( int argc, char* argv[] )
 		l1menu::ReducedSample mySample( sampleFilename );
 		mySample.setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
 
-		l1menu::TriggerMenu menu;
+		std::unique_ptr<l1menu::TriggerMenu> pMenu;
 		if( menuFilename.empty() )
 		{
 			std::cout << "No menu file was specified, so using the full menu used to create the ReducedSample" << std::endl;
-			menu=mySample.getTriggerMenu();
+			pMenu.reset( new l1menu::TriggerMenu( mySample.getTriggerMenu() ) );
 		}
 		else
 		{
 			std::cout << "Loading menu from file " << menuFilename << std::endl;
-			menu.loadMenuFromFile( menuFilename );
+			pMenu=l1menu::tools::loadMenu( menuFilename );
 		}
 
 //		for( size_t triggerNumber=0; triggerNumber<menu.numberOfTriggers(); ++triggerNumber )
@@ -71,7 +71,7 @@ int main( int argc, char* argv[] )
 //			std::cout << "\n";
 //		}
 
-		l1menu::MenuRatePlots rateVersusThresholdPlots( menu );
+		l1menu::MenuRatePlots rateVersusThresholdPlots( *pMenu );
 
 		std::cout << "Calculating rate plots..." << std::endl;
 		rateVersusThresholdPlots.addSample( mySample );
@@ -83,7 +83,7 @@ int main( int argc, char* argv[] )
 
 		std::cout << "Calculating fractions..." << std::endl;
 
-		std::shared_ptr<const l1menu::IMenuRate> pRates=mySample.rate(menu);
+		std::shared_ptr<const l1menu::IMenuRate> pRates=mySample.rate(*pMenu);
 
 		l1menu::tools::dumpTriggerRates( std::cout, *pRates );
 	}

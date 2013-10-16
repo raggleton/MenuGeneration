@@ -229,6 +229,10 @@ void l1menu::tools::dumpTriggerRates( std::ostream& output, const l1menu::IMenuR
 		::dumpTriggerRatesInOldFormat( output, menuRates, nullptr, delimeter );
 
 	} // end of "if format is OLDFORMAT or CSVFORMAT"
+	else // all known formats covered above, but in case a new one is introduced
+	{
+		throw std::logic_error( "dumpTriggerRates - file format requested has not been implemented yet" );
+	}
 
 }
 
@@ -290,6 +294,13 @@ void l1menu::tools::dumpTriggerMenu( std::ostream& output, const l1menu::Trigger
 			output << "\n";
 		}
 	} // if file format is OLDFORMAT
+	else if( format==l1menu::tools::FileFormat::XMLFORMAT )
+	{
+		l1menu::tools::XMLFile outputFile;
+		l1menu::tools::XMLElement rootElement=outputFile.rootElement();
+		l1menu::tools::convertToXML( menu, rootElement );
+		outputFile.outputToStream( output );
+	}
 	else
 	{
 		throw std::logic_error( "dumpTriggerMenu - file format requested has not been implemented yet" );
@@ -333,9 +344,26 @@ std::unique_ptr<l1menu::ISample> l1menu::tools::loadSample( const std::string& f
 	}
 }
 
+std::unique_ptr<l1menu::TriggerMenu> l1menu::tools::loadMenu( const std::string& filename )
+{
+	std::unique_ptr<l1menu::TriggerMenu> pReturnValue( new l1menu::TriggerMenu );
+
+	// Until I move the functionality to here I'll just call the deprecated method
+	pReturnValue->loadMenuFromFile( filename );
+
+	return pReturnValue;
+}
+
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::TriggerMenu& object, l1menu::tools::XMLElement& parent )
 {
-	throw std::logic_error( "unimplemented: l1menu::tools::convertToXML( const l1menu::TriggerMenu& object, l1menu::tools::XMLElement& parent )" );
+	l1menu::tools::XMLElement thisElement=parent.createChild( "TriggerMenu" );
+
+	for( size_t index=0; index<object.numberOfTriggers(); ++index )
+	{
+		l1menu::tools::convertToXML( object.getTrigger(index), thisElement );
+	}
+
+	return thisElement;
 }
 
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::ITriggerRate& object, l1menu::tools::XMLElement& parent )

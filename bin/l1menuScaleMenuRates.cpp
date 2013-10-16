@@ -1,7 +1,9 @@
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 
 #include "l1menu/tools/CommandLineParser.h"
+#include "l1menu/tools/fileIO.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
 
@@ -59,10 +61,11 @@ int main( int argc, char* argv[] )
 		{
 			try
 			{
-				l1menu::TriggerMenu menu;
 				std::cout << "Loading menu from file " << menuRateFilename << std::endl;
-				menu.loadMenuFromFile( "TestTriggerMenuSave.xml" );
-				menu.saveMenuToFile( "TestTriggerMenuSave2.xml" );
+				std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( "TestTriggerMenuSave.xml" );
+
+				std::ofstream outputFile( "TestTriggerMenuSave2.xml" );
+				l1menu::tools::dumpTriggerMenu( outputFile, *pMenu, l1menu::tools::FileFormat::XMLFORMAT );
 
 
 

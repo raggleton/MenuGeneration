@@ -49,8 +49,8 @@ namespace l1menu
 		virtual float pureRate() const = 0;
 		virtual float pureRateError() const = 0;
 
-		/** @brief Adds an XML element to the one provided that describes this object. */
-		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
+//		/** @brief Adds an XML element to the one provided that describes this object. */
+//		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
 	};
 
 } // end of namespace l1menu

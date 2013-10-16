@@ -55,8 +55,7 @@ int main( int argc, char* argv[] )
 		std::unique_ptr<TFile,void(*)(TFile*)> pMyRootFile( new TFile( "rateHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
 
 		std::cout << "Loading menu from file " << menuFilename << std::endl;
-		l1menu::TriggerMenu myMenu;
-		myMenu.loadMenuFromFile( menuFilename );
+		std::unique_ptr<l1menu::TriggerMenu> pMyMenu=l1menu::tools::loadMenu( menuFilename );
 
 		std::cout << "Loading ntuple from file " << ntupleFilename << std::endl;
 		l1menu::FullSample mySample;
@@ -64,12 +63,12 @@ int main( int argc, char* argv[] )
 		mySample.setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
 
 		std::cout << "Creating reduced sample" << std::endl;
-		l1menu::ReducedSample myReducedSample( mySample, myMenu );
+		l1menu::ReducedSample myReducedSample( mySample, *pMyMenu );
 		std::cout << "Done. Saving to file." << std::endl;
 		myReducedSample.saveToFile( "reducedSample.proto" );
 
 
-		l1menu::MenuRatePlots reducedRateVersusThresholdPlots( myMenu );
+		l1menu::MenuRatePlots reducedRateVersusThresholdPlots( *pMyMenu );
 		TDirectory* pSubDirectory=pMyRootFile->mkdir("reduced");
 		reducedRateVersusThresholdPlots.setDirectory(pSubDirectory);
 		reducedRateVersusThresholdPlots.relinquishOwnershipOfPlots();
@@ -78,7 +77,7 @@ int main( int argc, char* argv[] )
 		reducedRateVersusThresholdPlots.addSample(myReducedSample);
 		std::cout << "Finished processing the reduced events." << std::endl;
 
-		l1menu::MenuRatePlots rateVersusThresholdPlots( myMenu );
+		l1menu::MenuRatePlots rateVersusThresholdPlots( *pMyMenu );
 		rateVersusThresholdPlots.setDirectory( pMyRootFile.get() );
 		rateVersusThresholdPlots.relinquishOwnershipOfPlots(); // If I don't do this the plots will be deleted twice.
 

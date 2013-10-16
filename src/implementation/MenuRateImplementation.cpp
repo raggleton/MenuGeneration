@@ -150,63 +150,63 @@ const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRate
 	return baseClassReferences_;
 }
 
-void l1menu::implementation::MenuRateImplementation::save( const std::string& filename ) const
-{
-	std::ofstream outputFile( filename );
-	if( !outputFile.is_open() ) throw std::runtime_error( "Unable to open file "+filename+" to save the MenuRate" );
-	return save( outputFile );
-}
-
-void l1menu::implementation::MenuRateImplementation::save( std::ostream& outputStream ) const
-{
-	l1menu::tools::XMLFile outputFile;
-
-	l1menu::tools::XMLElement rootElement=outputFile.rootElement();
-	convertToXML( rootElement );
-
-	outputFile.outputToStream( outputStream );
-}
-
-void l1menu::implementation::MenuRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
-{
-	l1menu::tools::XMLElement thisElement=parentElement.createChild( "IMenuRate" );
-	thisElement.setAttribute( "formatVersion", 0 );
-
-	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightOfAllEvents" );
-	parameterElement.setValue( weightOfAllEvents_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightOfEventsPassingAnyTrigger" );
-	parameterElement.setValue( weightOfEventsPassingAnyTrigger_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingAnyTrigger" );
-	parameterElement.setValue( weightSquaredOfEventsPassingAnyTrigger_ );
-
-	parameterElement=thisElement.createChild( "parameter" );
-	parameterElement.setAttribute( "name", "scaling" );
-	parameterElement.setValue( scaling_ );
-
-	// Loop over all of the trigger rates and add those to the file
-	for( const auto& triggerRate : triggerRates_ )
-	{
-		triggerRate.convertToXML( thisElement );
-	}
-
-}
-
-std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename )
-{
-	l1menu::tools::XMLFile inputFile( filename );
-	//inputFile.outputToStream( std::cout );
-
-
-	//std::cout << "Loaded file. Root tag name is " << l1menu::implementation::XMLFile::NativeString( inputFile.rootElement()->getTagName() ).get() << std::endl;
-	std::cout << "Loaded file. Root tag name is " << inputFile.rootElement().name() << std::endl;
-	std::unique_ptr<l1menu::IMenuRate> pReturnValue( new l1menu::implementation::MenuRateImplementation );
-
-
-
-	return pReturnValue;
-}
+//void l1menu::implementation::MenuRateImplementation::save( const std::string& filename ) const
+//{
+//	std::ofstream outputFile( filename );
+//	if( !outputFile.is_open() ) throw std::runtime_error( "Unable to open file "+filename+" to save the MenuRate" );
+//	return save( outputFile );
+//}
+//
+//void l1menu::implementation::MenuRateImplementation::save( std::ostream& outputStream ) const
+//{
+//	l1menu::tools::XMLFile outputFile;
+//
+//	l1menu::tools::XMLElement rootElement=outputFile.rootElement();
+//	convertToXML( rootElement );
+//
+//	outputFile.outputToStream( outputStream );
+//}
+//
+//void l1menu::implementation::MenuRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
+//{
+//	l1menu::tools::XMLElement thisElement=parentElement.createChild( "IMenuRate" );
+//	thisElement.setAttribute( "formatVersion", 0 );
+//
+//	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightOfAllEvents" );
+//	parameterElement.setValue( weightOfAllEvents_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightOfEventsPassingAnyTrigger" );
+//	parameterElement.setValue( weightOfEventsPassingAnyTrigger_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingAnyTrigger" );
+//	parameterElement.setValue( weightSquaredOfEventsPassingAnyTrigger_ );
+//
+//	parameterElement=thisElement.createChild( "parameter" );
+//	parameterElement.setAttribute( "name", "scaling" );
+//	parameterElement.setValue( scaling_ );
+//
+//	// Loop over all of the trigger rates and add those to the file
+//	for( const auto& triggerRate : triggerRates_ )
+//	{
+//		triggerRate.convertToXML( thisElement );
+//	}
+//
+//}
+//
+//std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename )
+//{
+//	l1menu::tools::XMLFile inputFile( filename );
+//	//inputFile.outputToStream( std::cout );
+//
+//
+//	//std::cout << "Loaded file. Root tag name is " << l1menu::implementation::XMLFile::NativeString( inputFile.rootElement()->getTagName() ).get() << std::endl;
+//	std::cout << "Loaded file. Root tag name is " << inputFile.rootElement().name() << std::endl;
+//	std::unique_ptr<l1menu::IMenuRate> pReturnValue( new l1menu::implementation::MenuRateImplementation );
+//
+//
+//
+//	return pReturnValue;
+//}

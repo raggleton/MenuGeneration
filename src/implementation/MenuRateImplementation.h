@@ -32,7 +32,7 @@ namespace l1menu
 		 */
 		class MenuRateImplementation : public l1menu::IMenuRate
 		{
-			friend std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename );
+//			friend std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename );
 		public:
 			MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample );
 			float weightOfAllEvents() const;
@@ -40,9 +40,9 @@ namespace l1menu
 			float weightSquaredOfAllEventsPassingAnyTrigger() const;
 
 			float scaling() const;
-			virtual void save( const std::string& filename ) const;
-			virtual void save( std::ostream& outputStream ) const;
-			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
+//			virtual void save( const std::string& filename ) const;
+//			virtual void save( std::ostream& outputStream ) const;
+//			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
 
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;

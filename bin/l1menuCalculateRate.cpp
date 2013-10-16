@@ -77,13 +77,12 @@ int main( int argc, char* argv[] )
 		std::unique_ptr<l1menu::ISample> pSample=l1menu::tools::loadSample( sampleFilename );
 		pSample->setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
 
-		l1menu::TriggerMenu menu;
 		std::cout << "Loading menu from file " << menuFilename << std::endl;
-		menu.loadMenuFromFile( menuFilename );
+		std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( menuFilename );
 
 		std::cout << "Calculating rates..." << std::endl;
 
-		std::shared_ptr<const l1menu::IMenuRate> pRates=pSample->rate(menu);
+		std::shared_ptr<const l1menu::IMenuRate> pRates=pSample->rate(*pMenu);
 
 		if( !outputFilename.empty() )
 		{

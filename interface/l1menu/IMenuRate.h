@@ -36,9 +36,9 @@ namespace l1menu
 
 		virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const = 0;
 
-		virtual void save( std::ostream& outputStream ) const = 0;
-		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
-		static std::unique_ptr<l1menu::IMenuRate> load( const std::string& filename );
+//		virtual void save( std::ostream& outputStream ) const = 0;
+//		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
+//		static std::unique_ptr<l1menu::IMenuRate> load( const std::string& filename );
 	};
 
 } // end of namespace l1menu

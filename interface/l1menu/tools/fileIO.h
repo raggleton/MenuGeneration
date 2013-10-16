@@ -84,6 +84,13 @@ namespace l1menu
 		 */
 		std::unique_ptr<l1menu::ISample> loadSample( const std::string& filename );
 
+		/** @brief Loads the menu from a file on disk.
+		 *
+		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+		 * @date 15/Oct/2013
+		 */
+		std::unique_ptr<l1menu::TriggerMenu> loadMenu( const std::string& filename );
+
 		/** @brief Adds a child to the element passed which describes the TriggerMenu.
 		 *
 		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)

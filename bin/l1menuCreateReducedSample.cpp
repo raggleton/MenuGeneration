@@ -31,10 +31,9 @@ int main( int argc, char* argv[] )
 	try
 	{
 		std::cout << "Loading menu from file " << menuFilename << std::endl;
-		l1menu::TriggerMenu myMenu;
-		myMenu.loadMenuFromFile( menuFilename );
+		std::unique_ptr<l1menu::TriggerMenu> pMyMenu=l1menu::tools::loadMenu( menuFilename );
 
-		l1menu::ReducedSample outputReducedSample( myMenu );
+		l1menu::ReducedSample outputReducedSample( *pMyMenu );
 
 		for( const auto& filename : inputFilenames )
 		{
