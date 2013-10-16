@@ -30,7 +30,7 @@ namespace l1menu
 		class TriggerRateImplementation : public l1menu::ITriggerRate
 		{
 		public:
-			TriggerRateImplementation( const l1menu::ITrigger& trigger, float scaling, float fraction, float fractionError, float pureFraction, float pureFractionError );
+			TriggerRateImplementation( const l1menu::ITrigger& trigger, float fraction, float fractionError, float rate, float rateError, float pureFraction, float pureFractionError, float pureRate, float pureRateError );
 			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move constructor. One not implicitly generated because I have a custom destructor.
 			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move assignment. One not implicitly generated because I have a custom destructor.
 			virtual ~TriggerRateImplementation();

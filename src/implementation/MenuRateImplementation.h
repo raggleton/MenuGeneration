@@ -34,6 +34,7 @@ namespace l1menu
 		{
 		public:
 			MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample );
+			MenuRateImplementation( const l1menu::tools::XMLElement& xmlDescription );
 
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;

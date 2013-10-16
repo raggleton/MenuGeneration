@@ -7,11 +7,11 @@
 #include "l1menu/tools/XMLElement.h"
 #include "l1menu/tools/fileIO.h"
 
-l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( const l1menu::ITrigger& trigger, float scaling, float fraction, float fractionError, float pureFraction, float pureFractionError )
+l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( const l1menu::ITrigger& trigger, float fraction, float fractionError, float rate, float rateError, float pureFraction, float pureFractionError, float pureRate, float pureRateError )
 	: fraction_(fraction), fractionError_(fractionError),
-	  rate_(fraction*scaling), rateError_(fractionError*scaling),
+	  rate_(rate), rateError_(rateError),
 	  pureFraction_(pureFraction), pureFractionError_(pureFractionError),
-	  pureRate_(pureFraction*scaling), pureRateError_(pureFractionError*scaling)
+	  pureRate_(pureRate), pureRateError_(pureRateError)
 {
 	pTrigger_=std::move( l1menu::TriggerTable::instance().copyTrigger(trigger) );
 }

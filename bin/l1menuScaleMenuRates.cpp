@@ -15,7 +15,7 @@ namespace // Unnamed namespace for things only used in this file
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " <menu to scale 1> [menu to scale 2] [menu to scale 3]..." << "\n"
+			<< "\t" << executableName << " <menu rate to scale 1> [menu rate to scale 2] [menu rate to scale 3]..." << "\n"
 			<< "\t" << "\t" << "Currently just a testing ground while I play with xerces for the MenuRate file format." << "\n"
 			<< "\t" << "\t" << "In future this program will load a MenuRate from an xml file and perform scaling on it." << "\n"
 			<< "\n"
@@ -29,11 +29,19 @@ int main( int argc, char* argv[] )
 	std::cerr << "*** This program currently doesn't work. Only use for development. ***" << std::endl;
 
 	std::vector<std::string> menuRates;
+	std::string muonScalingFilename; // The filename of the file used to scale muon rates. Optional and can be empty.
+	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
+	std::string montoCarloScalingFilename; // Filename for rate plots from MC that matches the data. If this is set dataScalingFilename must also be set.
+	std::string dataScalingFilename;
 
 	l1menu::tools::CommandLineParser commandLineParser;
 	try
 	{
 		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
+		commandLineParser.addOption( "muonscaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "offlinescaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "montecarloscaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "datascaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.parse( argc, argv );
 
 		if( commandLineParser.optionHasBeenSet( "help" ) )
@@ -43,6 +51,18 @@ int main( int argc, char* argv[] )
 		}
 
 		if( commandLineParser.nonOptionArguments().empty() ) throw std::runtime_error( "You need to specify a filename for at least one MenuRate" );
+		if( commandLineParser.optionHasBeenSet("muonscaling") ) muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
+		if( commandLineParser.optionHasBeenSet("offlinescaling") ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
+		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
+		{
+			if( !commandLineParser.optionHasBeenSet("montecarloscaling") ) throw std::runtime_error( "If the 'datascaling' option is set then 'montecarloscaling' must also be set.");
+			else if( !commandLineParser.optionHasBeenSet("datascaling") ) throw std::runtime_error( "If the 'montecarloscaling' option is set then 'datascaling' must also be set.");
+			else
+			{
+				montoCarloScalingFilename=commandLineParser.optionArguments("montecarloscaling").back();
+				dataScalingFilename=commandLineParser.optionArguments("datascaling").back();
+			}
+		}
 
 		menuRates=commandLineParser.nonOptionArguments();
 	} // end of try block
@@ -61,11 +81,9 @@ int main( int argc, char* argv[] )
 		{
 			try
 			{
-				std::cout << "Loading menu from file " << menuRateFilename << std::endl;
-				std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( menuRateFilename );
+				std::cout << "Loading menu rate from file " << menuRateFilename << std::endl;
+				std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::tools::loadRate( menuRateFilename );
 
-				std::ofstream outputFile( "TestTriggerMenuSave2.xml" );
-				l1menu::tools::dumpTriggerMenu( outputFile, *pMenu, l1menu::tools::FileFormat::XMLFORMAT );
 
 
 

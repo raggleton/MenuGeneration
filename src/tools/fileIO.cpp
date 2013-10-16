@@ -5,7 +5,7 @@
 #include <map>
 #include <stdexcept>
 #include <algorithm>
-#include <ostream>
+#include <iostream>
 #include <fstream>
 #include <iomanip>
 #include "l1menu/ITrigger.h"
@@ -19,6 +19,7 @@
 #include "l1menu/tools/XMLFile.h"
 #include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/XMLElement.h"
+#include "../implementation/MenuRateImplementation.h"
 
 namespace // Unnamed namespace for things only used in this file
 {
@@ -356,7 +357,15 @@ std::unique_ptr<l1menu::TriggerMenu> l1menu::tools::loadMenu( const std::string&
 
 std::unique_ptr<l1menu::IMenuRate> l1menu::tools::loadRate( const std::string& filename )
 {
-	throw std::logic_error( "l1menu::tools::loadRate not implemented yet" );
+	l1menu::tools::XMLFile inputFile( filename );
+	l1menu::tools::XMLElement rootElement=inputFile.rootElement();
+
+	std::vector<l1menu::tools::XMLElement> childElements=rootElement.getChildren("MenuRate");
+	if( childElements.empty() ) throw std::runtime_error( "l1menu::tools::loadRate - file does not contain a \"MenuRate\" child element." );
+	if( childElements.size()>1 ) std::cout << "l1menu::tools::loadRate - N.B. The file has more than one \"MenuRate\" child element, only the first will be used." << std::endl;
+
+	std::unique_ptr<l1menu::IMenuRate> pReturnValue( new l1menu::implementation::MenuRateImplementation( childElements.front() ) );
+	return pReturnValue;
 }
 
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::TriggerMenu& object, l1menu::tools::XMLElement& parent )
@@ -373,7 +382,7 @@ l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::TriggerMenu
 
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::ITriggerRate& object, l1menu::tools::XMLElement& parent )
 {
-	l1menu::tools::XMLElement thisElement=parent.createChild( "ITriggerRate" );
+	l1menu::tools::XMLElement thisElement=parent.createChild( "TriggerRate" );
 	thisElement.setAttribute( "formatVersion", 0 );
 
 	thisElement.createChild( "fraction" ).setValue( object.fraction() );
@@ -411,7 +420,7 @@ l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::ITriggerDes
 
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::IMenuRate& object, l1menu::tools::XMLElement& parent )
 {
-	l1menu::tools::XMLElement thisElement=parent.createChild( "IMenuRate" );
+	l1menu::tools::XMLElement thisElement=parent.createChild( "MenuRate" );
 	thisElement.setAttribute( "formatVersion", 0 );
 
 	thisElement.createChild( "totalFraction" ).setValue( object.totalFraction() );
@@ -426,4 +435,31 @@ l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::IMenuRate& 
 	}
 
 	return thisElement;
+}
+
+std::unique_ptr<l1menu::ITrigger> l1menu::tools::convertFromXML( const l1menu::tools::XMLElement& xmlDescription )
+{
+	if( xmlDescription.name()!="Trigger" ) throw std::runtime_error( "Cannot create trigger from XML because the element provided is not named 'Trigger'" );
+
+	std::vector<l1menu::tools::XMLElement> parameterElements=xmlDescription.getChildren("name");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Cannot create trigger from XML because the element doesn't have one and only one subelement called 'name'" );
+	std::string triggerName=parameterElements.front().getValue();
+
+	parameterElements=xmlDescription.getChildren("version");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Cannot create trigger from XML because the element doesn't have one and only one subelement called 'version'" );
+	size_t version=parameterElements.front().getIntValue();
+
+	std::unique_ptr<l1menu::ITrigger> pNewTrigger=l1menu::TriggerTable::instance().getTrigger( triggerName, version );
+	if( pNewTrigger==nullptr ) throw std::runtime_error( "Cannot create trigger from XML because the trigger \""+triggerName+"\" with version "+std::to_string(version)+" is not registered in the TriggerTable. Is your code up to date?" );
+
+	// Now loop over all of the parameters and set them
+	parameterElements=xmlDescription.getChildren("parameter");
+	for( const auto& parameterElement : parameterElements )
+	{
+		std::string parameterName=parameterElement.getAttribute("name");
+		float parameterValue=parameterElement.getFloatValue();
+		pNewTrigger->parameter(parameterName)=parameterValue;
+	}
+
+	return pNewTrigger;
 }

@@ -161,7 +161,7 @@ class TriggerRateComparisonPlot(object):
 		self.instantiationCount=TriggerRateComparisonPlot.instantiationCount
 		TriggerRateComparisonPlot.instantiationCount+=1
 
-		splitPoint=0.001#0.33
+		splitPoint=0.33
 		self.padRatio=(1-splitPoint)/splitPoint
 
 		self.canvas=TCanvas()
@@ -256,7 +256,7 @@ for trigger in triggers:
 	plots.append( TriggerRateComparisonPlot() )
 	for fileAndTitle in filesAndTitles:
 		plots[-1].addByTriggerName( fileAndTitle[0], trigger, fileAndTitle[1] )
-	plots[-1].ratePlot.drawLegend=False
+	#plots[-1].ratePlot.drawLegend=False
 	plots[-1].draw()
 	# Add an extra member to say where to save, in case I choose to do so later
 	plots[-1].saveFilename=trigger+"_rateVsThreshold.pdf"
