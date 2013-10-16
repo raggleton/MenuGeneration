@@ -197,16 +197,6 @@ void l1menu::TriggerMenu::saveToXML( l1menu::tools::XMLElement& parentElement ) 
 	for( const auto& pTrigger : triggers_ )
 	{
 		l1menu::tools::convertToXML( *pTrigger, thisElement );
-		//pTrigger->convertToXML( thisElement );
-//		auto triggerElement=thisElement.createChild( "Trigger" );
-//		triggerElement.setAttribute( "name", pTrigger->name() );
-//		triggerElement.setAttribute( "version", static_cast<int>(pTrigger->version()) );
-//		for( const auto& parameterName : pTrigger->parameterNames() )
-//		{
-//			auto parameterElement=triggerElement.createChild( "parameter" );
-//			parameterElement.setAttribute( "name", parameterName );
-//			parameterElement.setValue( pTrigger->parameter(parameterName) );
-//		}
 	}
 }
 

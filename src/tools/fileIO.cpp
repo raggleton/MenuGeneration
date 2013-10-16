@@ -354,6 +354,11 @@ std::unique_ptr<l1menu::TriggerMenu> l1menu::tools::loadMenu( const std::string&
 	return pReturnValue;
 }
 
+std::unique_ptr<l1menu::IMenuRate> l1menu::tools::loadRate( const std::string& filename )
+{
+	throw std::logic_error( "l1menu::tools::loadRate not implemented yet" );
+}
+
 l1menu::tools::XMLElement l1menu::tools::convertToXML( const l1menu::TriggerMenu& object, l1menu::tools::XMLElement& parent )
 {
 	l1menu::tools::XMLElement thisElement=parent.createChild( "TriggerMenu" );

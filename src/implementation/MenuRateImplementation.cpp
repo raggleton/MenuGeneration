@@ -16,8 +16,6 @@
 #include "l1menu/tools/XMLFile.h"
 #include "l1menu/tools/XMLElement.h"
 
-//extern template convertToXML<l1menu::ITriggerRate>( const l1menu::ITriggerRate& object, l1menu::tools::XMLElement& parent );
-
 
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {
@@ -31,9 +29,9 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	std::vector<float> weightOfEventsPure( menu.numberOfTriggers() );
 	std::vector<float> weightSquaredOfEventsPure( menu.numberOfTriggers() );
 
-	weightOfEventsPassingAnyTrigger_=0;
-	weightSquaredOfEventsPassingAnyTrigger_=0;
-	weightOfAllEvents_=0;
+	float weightOfEventsPassingAnyTrigger=0;
+	float weightSquaredOfEventsPassingAnyTrigger=0;
+	float weightOfAllEvents=0;
 
 	// Using cached triggers significantly increases speed for ReducedSample
 	// because it cuts out expensive string comparisons when querying the trigger
@@ -50,7 +48,7 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	{
 		const l1menu::IEvent& event=sample.getEvent(eventNumber);
 		float weight=event.weight();
-		weightOfAllEvents_+=weight;
+		weightOfAllEvents+=weight;
 
 		size_t numberOfTriggersPassed=0;
 
@@ -74,18 +72,30 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 		}
 		if( numberOfTriggersPassed>0 )
 		{
-			weightOfEventsPassingAnyTrigger_+=weight;
-			weightSquaredOfEventsPassingAnyTrigger_+=(weight*weight);
+			weightOfEventsPassingAnyTrigger+=weight;
+			weightSquaredOfEventsPassingAnyTrigger+=(weight*weight);
 		}
 	}
 
-	scaling_=sample.eventRate();
+	float scaling=sample.eventRate();
 
 	for( size_t triggerNumber=0; triggerNumber<cachedTriggers.size(); ++triggerNumber )
 	{
-		triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),weightOfEventsPassed[triggerNumber],weightSquaredOfEventsPassed[triggerNumber],weightOfEventsPure[triggerNumber],weightSquaredOfEventsPure[triggerNumber],*this)) );
+		float fraction=weightOfEventsPassed[triggerNumber]/weightOfAllEvents;
+		float fractionError=std::sqrt(weightSquaredOfEventsPassed[triggerNumber])/weightOfAllEvents;
+		float pureFraction=weightOfEventsPure[triggerNumber]/weightOfAllEvents;
+		float pureFractionError=std::sqrt(weightSquaredOfEventsPure[triggerNumber])/weightOfAllEvents;
+		triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),scaling,fraction,fractionError,pureFraction,pureFractionError) ) );
+		//triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),weightOfEventsPassed[triggerNumber],weightSquaredOfEventsPassed[triggerNumber],weightOfEventsPure[triggerNumber],weightSquaredOfEventsPure[triggerNumber],*this)) );
 	}
 
+	//
+	// Now I have everything I need to calculate all of the values required by the interface
+	//
+	totalFraction_=weightOfEventsPassingAnyTrigger/weightOfAllEvents;
+	totalFractionError_=std::sqrt(weightSquaredOfEventsPassingAnyTrigger)/weightOfAllEvents;
+	totalRate_=totalFraction_*scaling;
+	totalRateError_=totalFractionError_*scaling;
 }
 
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation()
@@ -93,44 +103,24 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation()
 	// No operation.
 }
 
-float l1menu::implementation::MenuRateImplementation::weightOfAllEvents() const
-{
-	return weightOfAllEvents_;
-}
-
-float l1menu::implementation::MenuRateImplementation::weightOfAllEventsPassingAnyTrigger() const
-{
-	return weightOfEventsPassingAnyTrigger_;
-}
-
-float l1menu::implementation::MenuRateImplementation::weightSquaredOfAllEventsPassingAnyTrigger() const
-{
-	return weightSquaredOfEventsPassingAnyTrigger_;
-}
-
-float l1menu::implementation::MenuRateImplementation::scaling() const
-{
-	return scaling_;
-}
-
 float l1menu::implementation::MenuRateImplementation::totalFraction() const
 {
-	return weightOfEventsPassingAnyTrigger_/weightOfAllEvents_;
+	return totalFraction_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalFractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsPassingAnyTrigger_)/weightOfAllEvents_;
+	return totalFractionError_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalRate() const
 {
-	return totalFraction()*scaling_;
+	return totalRate_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalRateError() const
 {
-	return totalFractionError()*scaling_;
+	return totalRateError_;
 }
 
 const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRateImplementation::triggerRates() const
@@ -138,75 +128,14 @@ const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRate
 	// If the sizes are the same I'll assume nothing has changed and the references
 	// are still valid. I don't expect this method to be called until the triggerRates_
 	// vector is complete anyway.
-	if( triggerRates_.size()!=baseClassReferences_.size() )
+	if( triggerRates_.size()!=baseClassPointers_.size() )
 	{
-		baseClassReferences_.clear();
+		baseClassPointers_.clear();
 		for( const auto& triggerRate : triggerRates_ )
 		{
-			baseClassReferences_.push_back( &triggerRate );
+			baseClassPointers_.push_back( &triggerRate );
 		}
 	}
 
-	return baseClassReferences_;
+	return baseClassPointers_;
 }
-
-//void l1menu::implementation::MenuRateImplementation::save( const std::string& filename ) const
-//{
-//	std::ofstream outputFile( filename );
-//	if( !outputFile.is_open() ) throw std::runtime_error( "Unable to open file "+filename+" to save the MenuRate" );
-//	return save( outputFile );
-//}
-//
-//void l1menu::implementation::MenuRateImplementation::save( std::ostream& outputStream ) const
-//{
-//	l1menu::tools::XMLFile outputFile;
-//
-//	l1menu::tools::XMLElement rootElement=outputFile.rootElement();
-//	convertToXML( rootElement );
-//
-//	outputFile.outputToStream( outputStream );
-//}
-//
-//void l1menu::implementation::MenuRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
-//{
-//	l1menu::tools::XMLElement thisElement=parentElement.createChild( "IMenuRate" );
-//	thisElement.setAttribute( "formatVersion", 0 );
-//
-//	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightOfAllEvents" );
-//	parameterElement.setValue( weightOfAllEvents_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightOfEventsPassingAnyTrigger" );
-//	parameterElement.setValue( weightOfEventsPassingAnyTrigger_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingAnyTrigger" );
-//	parameterElement.setValue( weightSquaredOfEventsPassingAnyTrigger_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "scaling" );
-//	parameterElement.setValue( scaling_ );
-//
-//	// Loop over all of the trigger rates and add those to the file
-//	for( const auto& triggerRate : triggerRates_ )
-//	{
-//		triggerRate.convertToXML( thisElement );
-//	}
-//
-//}
-//
-//std::unique_ptr<l1menu::IMenuRate> l1menu::IMenuRate::load( const std::string& filename )
-//{
-//	l1menu::tools::XMLFile inputFile( filename );
-//	//inputFile.outputToStream( std::cout );
-//
-//
-//	//std::cout << "Loaded file. Root tag name is " << l1menu::implementation::XMLFile::NativeString( inputFile.rootElement()->getTagName() ).get() << std::endl;
-//	std::cout << "Loaded file. Root tag name is " << inputFile.rootElement().name() << std::endl;
-//	std::unique_ptr<l1menu::IMenuRate> pReturnValue( new l1menu::implementation::MenuRateImplementation );
-//
-//
-//
-//	return pReturnValue;
-//}

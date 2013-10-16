@@ -7,23 +7,25 @@
 #include "l1menu/tools/XMLElement.h"
 #include "l1menu/tools/fileIO.h"
 
-l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightSquaredOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, float weightSquaredOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate )
-	: weightOfEventsPassingThisTrigger_(weightOfEventsPassingThisTrigger),
-	  weightSquaredOfEventsPassingThisTrigger_(weightSquaredOfEventsPassingThisTrigger),
-	  weightOfEventsOnlyPassingThisTrigger_(weightOfEventsOnlyPassingThisTrigger),
-	  weightSquaredOfEventsOnlyPassingThisTrigger_(weightSquaredOfEventsOnlyPassingThisTrigger),
-	  pMenuRate_(&menuRate)
+l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( const l1menu::ITrigger& trigger, float scaling, float fraction, float fractionError, float pureFraction, float pureFractionError )
+	: fraction_(fraction), fractionError_(fractionError),
+	  rate_(fraction*scaling), rateError_(fractionError*scaling),
+	  pureFraction_(pureFraction), pureFractionError_(pureFractionError),
+	  pureRate_(pureFraction*scaling), pureRateError_(pureFractionError*scaling)
 {
 	pTrigger_=std::move( l1menu::TriggerTable::instance().copyTrigger(trigger) );
 }
 
 l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept
 	: pTrigger_( std::move(otherTriggerRate.pTrigger_) ),
-	  weightOfEventsPassingThisTrigger_(otherTriggerRate.weightOfEventsPassingThisTrigger_),
-	  weightSquaredOfEventsPassingThisTrigger_(otherTriggerRate.weightSquaredOfEventsPassingThisTrigger_),
-	  weightOfEventsOnlyPassingThisTrigger_(otherTriggerRate.weightOfEventsOnlyPassingThisTrigger_),
-	  weightSquaredOfEventsOnlyPassingThisTrigger_(otherTriggerRate.weightSquaredOfEventsOnlyPassingThisTrigger_),
-	  pMenuRate_(otherTriggerRate.pMenuRate_)
+	  fraction_(otherTriggerRate.fraction_),
+	  fractionError_(otherTriggerRate.fractionError_),
+	  rate_(otherTriggerRate.rate_),
+	  rateError_(otherTriggerRate.rateError_),
+	  pureFraction_(otherTriggerRate.pureFraction_),
+	  pureFractionError_(otherTriggerRate.pureFractionError_),
+	  pureRate_(otherTriggerRate.pureRate_),
+	  pureRateError_(otherTriggerRate.pureRateError_)
 {
 	// No operation besides the initialiser list
 }
@@ -31,11 +33,14 @@ l1menu::implementation::TriggerRateImplementation::TriggerRateImplementation( Tr
 l1menu::implementation::TriggerRateImplementation& l1menu::implementation::TriggerRateImplementation::operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept
 {
 	pTrigger_=std::move( otherTriggerRate.pTrigger_ );
-	weightOfEventsPassingThisTrigger_=otherTriggerRate.weightOfEventsPassingThisTrigger_;
-	weightSquaredOfEventsPassingThisTrigger_=otherTriggerRate.weightSquaredOfEventsPassingThisTrigger_;
-	weightOfEventsOnlyPassingThisTrigger_=otherTriggerRate.weightOfEventsOnlyPassingThisTrigger_;
-	weightSquaredOfEventsOnlyPassingThisTrigger_=otherTriggerRate.weightSquaredOfEventsOnlyPassingThisTrigger_;
-	pMenuRate_=otherTriggerRate.pMenuRate_;
+	fraction_=otherTriggerRate.fraction_;
+	fractionError_=otherTriggerRate.fractionError_;
+	rate_=otherTriggerRate.rate_;
+	rateError_=otherTriggerRate.rateError_;
+	pureFraction_=otherTriggerRate.pureFraction_;
+	pureFractionError_=otherTriggerRate.pureFractionError_;
+	pureRate_=otherTriggerRate.pureRate_;
+	pureRateError_=otherTriggerRate.pureRateError_;
 	return *this;
 }
 
@@ -51,65 +56,40 @@ const l1menu::ITriggerDescription& l1menu::implementation::TriggerRateImplementa
 
 float l1menu::implementation::TriggerRateImplementation::fraction() const
 {
-	return weightOfEventsPassingThisTrigger_/pMenuRate_->weightOfAllEvents();
+	return fraction_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::fractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsPassingThisTrigger_)/pMenuRate_->weightOfAllEvents();
+	return fractionError_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::rate() const
 {
-	return fraction()*pMenuRate_->scaling();
+	return rate_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::rateError() const
 {
-	return fractionError()*pMenuRate_->scaling();
+	return rateError_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureFraction() const
 {
-	return weightOfEventsOnlyPassingThisTrigger_/pMenuRate_->weightOfAllEvents();
+	return pureFraction_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureFractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsOnlyPassingThisTrigger_)/pMenuRate_->weightOfAllEvents();
+	return pureFractionError_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureRate() const
 {
-	return pureFraction()*pMenuRate_->scaling();
+	return pureRate_;
 }
 
 float l1menu::implementation::TriggerRateImplementation::pureRateError() const
 {
-	return pureFractionError()*pMenuRate_->scaling();
+	return pureRateError_;
 }
-
-//void l1menu::implementation::TriggerRateImplementation::convertToXML( l1menu::tools::XMLElement& parentElement ) const
-//{
-//	l1menu::tools::XMLElement thisElement=parentElement.createChild( "ITriggerRate" );
-//	thisElement.setAttribute( "formatVersion", 0 );
-//
-//	l1menu::tools::XMLElement parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightOfEventsPassingThisTrigger" );
-//	parameterElement.setValue( weightOfEventsPassingThisTrigger_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightSquaredOfEventsPassingThisTrigger" );
-//	parameterElement.setValue( weightSquaredOfEventsPassingThisTrigger_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightOfEventsOnlyPassingThisTrigger" );
-//	parameterElement.setValue( weightOfEventsOnlyPassingThisTrigger_ );
-//
-//	parameterElement=thisElement.createChild( "parameter" );
-//	parameterElement.setAttribute( "name", "weightSquaredOfEventsOnlyPassingThisTrigger" );
-//	parameterElement.setValue( weightSquaredOfEventsOnlyPassingThisTrigger_ );
-//
-//	l1menu::tools::convertToXML( *pTrigger_, thisElement );
-//	//pTrigger_->convertToXML( thisElement );
-//}

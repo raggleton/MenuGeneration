@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
 			try
 			{
 				std::cout << "Loading menu from file " << menuRateFilename << std::endl;
-				std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( "TestTriggerMenuSave.xml" );
+				std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( menuRateFilename );
 
 				std::ofstream outputFile( "TestTriggerMenuSave2.xml" );
 				l1menu::tools::dumpTriggerMenu( outputFile, *pMenu, l1menu::tools::FileFormat::XMLFORMAT );

@@ -30,9 +30,9 @@ namespace l1menu
 		class TriggerRateImplementation : public l1menu::ITriggerRate
 		{
 		public:
-			TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightSquaredOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, float weightSquaredOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate );
-			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move constructor
-			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move assignment
+			TriggerRateImplementation( const l1menu::ITrigger& trigger, float scaling, float fraction, float fractionError, float pureFraction, float pureFractionError );
+			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move constructor. One not implicitly generated because I have a custom destructor.
+			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move assignment. One not implicitly generated because I have a custom destructor.
 			virtual ~TriggerRateImplementation();
 
 			// Methods required by the l1menu::ITriggerRate interface
@@ -45,14 +45,16 @@ namespace l1menu
 			virtual float pureFractionError() const;
 			virtual float pureRate() const;
 			virtual float pureRateError() const;
-//			virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
-			float weightOfEventsPassingThisTrigger_;
-			float weightSquaredOfEventsPassingThisTrigger_;
-			float weightOfEventsOnlyPassingThisTrigger_;
-			float weightSquaredOfEventsOnlyPassingThisTrigger_;
-			const MenuRateImplementation* pMenuRate_;
+			float fraction_;
+			float fractionError_;
+			float rate_;
+			float rateError_;
+			float pureFraction_;
+			float pureFractionError_;
+			float pureRate_;
+			float pureRateError_;
 		};
 
 

@@ -22,6 +22,7 @@ namespace l1menu
 	class IMenuRate;
 	class ISample;
 	class TriggerMenu;
+	class IMenuRate;
 	class ITriggerRate;
 	namespace tools
 	{
@@ -90,6 +91,13 @@ namespace l1menu
 		 * @date 15/Oct/2013
 		 */
 		std::unique_ptr<l1menu::TriggerMenu> loadMenu( const std::string& filename );
+
+		/** @brief Loads an IMenuRate from a file on disk.
+		 *
+		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
+		 * @date 16/Oct/2013
+		 */
+		std::unique_ptr<l1menu::IMenuRate> loadRate( const std::string& filename );
 
 		/** @brief Adds a child to the element passed which describes the TriggerMenu.
 		 *
