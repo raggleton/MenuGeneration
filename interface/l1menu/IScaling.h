@@ -33,11 +33,11 @@ namespace l1menu
 		/// @brief A detailed description of what the scaling does, including all scaling parameters.
 		virtual std::string detailedDescription() = 0;
 
-		virtual std::unique_ptr<l1menu::TriggerRatePlot> scaleTriggerRatePlot( const l1menu::TriggerRatePlot& unscaledPlot ) = 0;
+		virtual std::unique_ptr<l1menu::TriggerRatePlot> scale( const l1menu::TriggerRatePlot& unscaledPlot ) = 0;
 
-		virtual std::unique_ptr<l1menu::MenuRatePlots> scaleMenuRatePlots( const l1menu::MenuRatePlots& unscaledPlots ) = 0;
+		virtual std::unique_ptr<l1menu::MenuRatePlots> scale( const l1menu::MenuRatePlots& unscaledPlots ) = 0;
 
-		virtual std::shared_ptr<l1menu::IMenuRate> scaleMenuRate( const l1menu::IMenuRate& unscaledMenuRate ) = 0;
+		virtual std::unique_ptr<l1menu::IMenuRate> scale( const l1menu::IMenuRate& unscaledMenuRate ) = 0;
 	};
 
 } // end of namespace l1menu
