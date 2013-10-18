@@ -113,7 +113,7 @@ std::unique_ptr<l1menu::ITrigger> l1menu::TriggerTable::getTrigger( const Trigge
 	return std::unique_ptr<l1menu::ITrigger>();
 }
 
-std::unique_ptr<l1menu::ITrigger> l1menu::TriggerTable::copyTrigger( const l1menu::ITrigger& triggerToCopy ) const
+std::unique_ptr<l1menu::ITrigger> l1menu::TriggerTable::copyTrigger( const l1menu::ITriggerDescription& triggerToCopy ) const
 {
 	// First create a trigger with the matching name and version
 	std::unique_ptr<l1menu::ITrigger> newTrigger=getTrigger( triggerToCopy.name(), triggerToCopy.version() );
