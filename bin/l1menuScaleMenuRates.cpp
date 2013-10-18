@@ -6,6 +6,9 @@
 #include "l1menu/tools/fileIO.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
+#include "l1menu/MenuRatePlots.h"
+#include "l1menu/scalings/MCDataScaling.h"
+#include <TFile.h>
 
 namespace // Unnamed namespace for things only used in this file
 {
@@ -31,14 +34,17 @@ int main( int argc, char* argv[] )
 	std::vector<std::string> menuRates;
 	std::string muonScalingFilename; // The filename of the file used to scale muon rates. Optional and can be empty.
 	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
-	std::string montoCarloScalingFilename; // Filename for rate plots from MC that matches the data. If this is set dataScalingFilename must also be set.
-	std::string dataScalingFilename;
+	// List of all the scalings that should be applied
+	std::vector< std::unique_ptr<l1menu::IScaling> > scalingsToApply;
+	std::string unscaledRatesFilename;
+
 
 	l1menu::tools::CommandLineParser commandLineParser;
 	try
 	{
 		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
 		commandLineParser.addOption( "muonscaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "rateplots", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "offlinescaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "montecarloscaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "datascaling", l1menu::tools::CommandLineParser::RequiredArgument );
@@ -51,6 +57,7 @@ int main( int argc, char* argv[] )
 		}
 
 		if( commandLineParser.nonOptionArguments().empty() ) throw std::runtime_error( "You need to specify a filename for at least one MenuRate" );
+		if( commandLineParser.optionHasBeenSet("rateplots") ) unscaledRatesFilename=commandLineParser.optionArguments("rateplots").back();
 		if( commandLineParser.optionHasBeenSet("muonscaling") ) muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
 		if( commandLineParser.optionHasBeenSet("offlinescaling") ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
 		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
@@ -59,11 +66,14 @@ int main( int argc, char* argv[] )
 			else if( !commandLineParser.optionHasBeenSet("datascaling") ) throw std::runtime_error( "If the 'montecarloscaling' option is set then 'datascaling' must also be set.");
 			else
 			{
-				montoCarloScalingFilename=commandLineParser.optionArguments("montecarloscaling").back();
-				dataScalingFilename=commandLineParser.optionArguments("datascaling").back();
+				std::string monteCarloFilename=commandLineParser.optionArguments("montecarloscaling").back();
+				std::string dataFilename=commandLineParser.optionArguments("datascaling").back();
+				if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for data/Monte Carlo also requires the unscaled rate plots set with the 'rateplots' option" );
+				scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MCDataScaling(monteCarloFilename,dataFilename,unscaledRatesFilename) ) );
 			}
 		}
 
+		if( scalingsToApply.empty() ) throw std::runtime_error( "No scalings have been requested on the command line. Nothing will be done.");
 		menuRates=commandLineParser.nonOptionArguments();
 	} // end of try block
 	catch( std::exception& error )
@@ -76,6 +86,29 @@ int main( int argc, char* argv[] )
 
 	try
 	{
+		//
+		// First scale all of the rate plots
+		//
+		if( !unscaledRatesFilename.empty() )
+		{
+			std::cout << "Scaling " << unscaledRatesFilename << " with..." << std::endl;
+			std::unique_ptr<TFile> pRatePlotsRootFile( TFile::Open( unscaledRatesFilename.c_str() ) );
+			std::unique_ptr<l1menu::MenuRatePlots> pRatePlots( new l1menu::MenuRatePlots( pRatePlotsRootFile.get() ) );
+
+			for( const auto& pScaling : scalingsToApply )
+			{
+				std::cout << "   " << pScaling->briefDescription() << std::endl;
+				// Replace the current menu with the newly scaled one, and repeat until all scaling has been done.
+				pRatePlots=pScaling->scale( *pRatePlots );
+			}
+
+			std::unique_ptr<TFile> pOutputScaledRatePlotsFile( TFile::Open( "scaledRatePlots.root", "RECREATE" ) );
+			pRatePlots->setDirectory( pOutputScaledRatePlotsFile.get() );
+			pRatePlots->relinquishOwnershipOfPlots();
+			pOutputScaledRatePlotsFile->Write();
+			std::cout << "Scaled rate plots written to file " << "scaledRatePlots.root" << std::endl;
+		}
+
 
 		for( const auto& menuRateFilename : menuRates )
 		{
@@ -84,11 +117,18 @@ int main( int argc, char* argv[] )
 				std::cout << "Loading menu rate from file " << menuRateFilename << std::endl;
 				std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::tools::loadRate( menuRateFilename );
 
-
+				std::cout << "Scaling " << menuRateFilename << " with..." << std::endl;
+				for( const auto& pScaling : scalingsToApply )
+				{
+					std::cout << "   " << pScaling->briefDescription() << std::endl;
+					// Replace the current menu with the newly scaled one, and repeat until all scaling has been done.
+					pMenuRate=pScaling->scale( *pMenuRate );
+				}
 
 
 				//std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::IMenuRate::load( menuRateFilename );
 				//menuRateFile.outputToStream( std::cout );
+				l1menu::tools::dumpTriggerRates( std::cout, *pMenuRate );
 
 				std::cout << std::endl;
 			}
