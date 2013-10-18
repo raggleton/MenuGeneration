@@ -10,6 +10,7 @@
 namespace l1menu
 {
 	class ITrigger;
+	class ITriggerDescription;
 }
 
 namespace l1menu
@@ -52,7 +53,7 @@ namespace l1menu
 		std::unique_ptr<l1menu::ITrigger> getTrigger( const TriggerDetails& details ) const;
 
 		/** @brief Provides a copy of the supplied trigger, with the correct version and also copyies the parameters. */
-		std::unique_ptr<l1menu::ITrigger> copyTrigger( const l1menu::ITrigger& triggerToCopy ) const;
+		std::unique_ptr<l1menu::ITrigger> copyTrigger( const l1menu::ITriggerDescription& triggerToCopy ) const;
 
 		/** @brief List the triggers available.
 		 *
