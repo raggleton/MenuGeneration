@@ -13,6 +13,7 @@ namespace l1menu
 {
 	class IEvent;
 	class ITrigger;
+	class ITriggerDescription;
 	class ICachedTrigger;
 	class ISample;
 }
@@ -44,13 +45,13 @@ namespace l1menu
 		 *                              parameter and the versusParameter at the time of construction is kept as the versusParameter is
 		 *                              changed. A check is made to ensure the versusParameter is taken out of the list if it is present.
 		 */
-		TriggerRatePlot( const l1menu::ITrigger& trigger, std::unique_ptr<TH1> pHistogram, const std::string& versusParameter="threshold1", const std::vector<std::string> scaledParameters=std::vector<std::string>() );
+		TriggerRatePlot( const l1menu::ITriggerDescription& trigger, std::unique_ptr<TH1> pHistogram, const std::string& versusParameter="threshold1", const std::vector<std::string> scaledParameters=std::vector<std::string>() );
 		/** @brief Constructor that creates the histogram itself.
 		 *
 		 * Similar to the other constructor, except that instead of taking a previously created histogram takes the information required
 		 * to create a histogram itself (number of bins etcetera).
 		 */
-		TriggerRatePlot( const l1menu::ITrigger& trigger, const std::string& name, size_t numberOfBins, float lowEdge, float highEdge, const std::string& versusParameter="threshold1", const std::vector<std::string> scaledParameters=std::vector<std::string>() );
+		TriggerRatePlot( const l1menu::ITriggerDescription& trigger, const std::string& name, size_t numberOfBins, float lowEdge, float highEdge, const std::string& versusParameter="threshold1", const std::vector<std::string> scaledParameters=std::vector<std::string>() );
 		/** @brief Constructor that takes a histogram previously created by TriggerRatePlot, e.g. to load from disk.
 		 *
 		 * Tries to tell from the information in the title all of the information required to recreate the TriggerRateObject
@@ -74,7 +75,7 @@ namespace l1menu
 		void addSample( const l1menu::ISample& sample );
 
 		/** @brief Returns the trigger being used to create the plot. */
-		const l1menu::ITrigger& getTrigger() const;
+		const l1menu::ITriggerDescription& getTrigger() const;
 
 		/** @brief Returns the name of the trigger parameter plotted against. */
 		const std::string& versusParameter() const;
@@ -99,7 +100,7 @@ namespace l1menu
 		 *                                     made with.
 		 * @return                             True if this plot was created with an equivalent trigger.
 		 */
-		bool triggerMatches( const l1menu::ITrigger& trigger, bool matchTriggerVersion=true ) const;
+		bool triggerMatches( const l1menu::ITriggerDescription& trigger, bool matchTriggerVersion=true ) const;
 
 		/** @brief Returns the threshold that will will provide a given rate.
 		 *
@@ -128,7 +129,7 @@ namespace l1menu
 		 */
 		static void addSample( const l1menu::ISample& sample, std::vector<TriggerRatePlot>& ratePlots );
 	protected:
-		void initiate( const l1menu::ITrigger& trigger, const std::vector<std::string>& scaledParameters );
+		void initiate( const l1menu::ITriggerDescription& trigger, const std::vector<std::string>& scaledParameters );
 		std::unique_ptr<l1menu::ITrigger> pTrigger_;
 		std::unique_ptr<TH1> pHistogram_;
 		/// The parameter to plot against, usually "threshold1";
