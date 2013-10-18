@@ -131,8 +131,8 @@ void TriggerRatePlotUnitTestSuite::testConstructingFromTH1()
 	}
 
 	// Now compare the triggers
-	const l1menu::ITrigger& expectedTrigger=ratePlot.getTrigger();
-	const l1menu::ITrigger& actualTrigger=duplicateRatePlot.getTrigger();
+	const l1menu::ITriggerDescription& expectedTrigger=ratePlot.getTrigger();
+	const l1menu::ITriggerDescription& actualTrigger=duplicateRatePlot.getTrigger();
 	CPPUNIT_ASSERT_EQUAL( expectedTrigger.name(), actualTrigger.name() );
 	CPPUNIT_ASSERT_EQUAL( expectedTrigger.version(), actualTrigger.version() );
 
