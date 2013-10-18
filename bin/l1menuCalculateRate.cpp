@@ -12,7 +12,7 @@
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " [--output <output filename>] [--format < CSV | OLD | XML >] <sample filename> <menu filename>" << "\n"
+			<< "\t" << executableName << " [--output <output filename>] [--format <CSV | OLD | XML>] <sample filename> <menu filename>" << "\n"
 			<< "\n"
 			<< "\t" << executableName << " --help" << "\n"
 			<< "\t" << "\t" << "prints this help message" << "\n"

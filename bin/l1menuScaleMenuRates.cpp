@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 #include "l1menu/tools/CommandLineParser.h"
 #include "l1menu/tools/fileIO.h"
@@ -19,9 +20,14 @@ namespace // Unnamed namespace for things only used in this file
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " <menu rate to scale 1> [menu rate to scale 2] [menu rate to scale 3]..." << "\n"
-			<< "\t" << "\t" << "Currently just a testing ground while I play with xerces for the MenuRate file format." << "\n"
-			<< "\t" << "\t" << "In future this program will load a MenuRate from an xml file and perform scaling on it." << "\n"
+			<< "\t" << executableName << "  [--rateplots <unscaled rateplot filename>] [--muonscaling <muon scaling filename>]" << "\n"
+			<< "\t" << std::setw(executableName.size()) << " " << "    [--datascaling <data scaling filename> --montecarloscaling <MC scaling filename>]" << "\n"
+			<< "\t" << std::setw(executableName.size()) << " " << "    [--format <CSV | OLD | XML>] <menu rate to scale 1> [menu rate to scale 2] [menu rate to scale 3]..." << "\n"
+			<< "\t" << "\t" << "Scales the provided menu rates with the scaling options provided. The menu rates should be in XML" << "\n"
+			<< "\t" << "\t" << "format, i.e. the output from l1menuFitMenu or l1menuCalculateRate with the '--format XML' option." << "\n"
+			<< "\t" << "\t" << "Most of the scalings require 'rateplots' to be set, which should be the unscaled output from the " << "\n"
+			<< "\t" << "\t" << "l1menuCreateRatePlots program. If 'datascaling' is set then 'montecarloscaling' must also be set," << "\n"
+			<< "\t" << "\t" << "since the scaling performed is the ratio of the two." << "\n"
 			<< "\n"
 			<< "\t" << executableName << " --help" << "\n"
 			<< "\t" << "\t" << "prints this help message" << "\n"
@@ -30,14 +36,12 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 
 int main( int argc, char* argv[] )
 {
-	std::cerr << "*** This program currently doesn't work. Only use for development. ***" << std::endl;
-
 	std::vector<std::string> menuRates;
 	std::string muonScalingFilename; // The filename of the file used to scale muon rates. Optional and can be empty.
 	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
-	// List of all the scalings that should be applied
-	std::vector< std::unique_ptr<l1menu::IScaling> > scalingsToApply;
+	std::vector< std::unique_ptr<l1menu::IScaling> > scalingsToApply; // List of all the scalings that should be applied
 	std::string unscaledRatesFilename;
+	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
 
 
 	l1menu::tools::CommandLineParser commandLineParser;
@@ -49,6 +53,7 @@ int main( int argc, char* argv[] )
 		commandLineParser.addOption( "offlinescaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "montecarloscaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "datascaling", l1menu::tools::CommandLineParser::RequiredArgument );
+		commandLineParser.addOption( "format", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.parse( argc, argv );
 
 		if( commandLineParser.optionHasBeenSet( "help" ) )
@@ -58,6 +63,14 @@ int main( int argc, char* argv[] )
 		}
 
 		if( commandLineParser.nonOptionArguments().empty() ) throw std::runtime_error( "You need to specify a filename for at least one MenuRate" );
+		if( commandLineParser.optionHasBeenSet( "format" ) )
+		{
+			std::string formatString=commandLineParser.optionArguments("format").back();
+			if( formatString=="XML" ) fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+			else if( formatString=="OLD" ) fileFormat=l1menu::tools::FileFormat::OLDFORMAT;
+			else if( formatString=="CSV" ) fileFormat=l1menu::tools::FileFormat::CSVFORMAT;
+			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
+		}
 		if( commandLineParser.optionHasBeenSet("rateplots") ) unscaledRatesFilename=commandLineParser.optionArguments("rateplots").back();
 		if( commandLineParser.optionHasBeenSet("muonscaling") )
 		{
@@ -65,7 +78,7 @@ int main( int argc, char* argv[] )
 			muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
 			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MuonScaling(muonScalingFilename,unscaledRatesFilename) ) );
 		}
-		if( commandLineParser.optionHasBeenSet("offlinescaling") ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
+		if( commandLineParser.optionHasBeenSet("offlinescaling") ) throw std::runtime_error( "Sorry, the 'offlinescaling' option has not been implemented yet." );
 		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
 		{
 			if( !commandLineParser.optionHasBeenSet("montecarloscaling") ) throw std::runtime_error( "If the 'datascaling' option is set then 'montecarloscaling' must also be set.");
@@ -79,7 +92,8 @@ int main( int argc, char* argv[] )
 			}
 		}
 
-		if( scalingsToApply.empty() ) throw std::runtime_error( "No scalings have been requested on the command line. Nothing will be done.");
+		if( scalingsToApply.empty() ) std::cout << "No scalings have been requested on the command line. Is this really what you want?"
+				<< " You can do this to convert menu rates between the different file formats." << std::endl;
 		menuRates=commandLineParser.nonOptionArguments();
 	} // end of try block
 	catch( std::exception& error )
@@ -93,7 +107,7 @@ int main( int argc, char* argv[] )
 	try
 	{
 		//
-		// First scale all of the rate plots
+		// First scale all of the rate plots.
 		//
 		if( !unscaledRatesFilename.empty() )
 		{
@@ -134,7 +148,7 @@ int main( int argc, char* argv[] )
 
 				//std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::IMenuRate::load( menuRateFilename );
 				//menuRateFile.outputToStream( std::cout );
-				l1menu::tools::dumpTriggerRates( std::cout, *pMenuRate );
+				l1menu::tools::dumpTriggerRates( std::cout, *pMenuRate, fileFormat );
 
 				std::cout << std::endl;
 			}

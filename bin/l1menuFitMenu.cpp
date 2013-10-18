@@ -23,13 +23,14 @@
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " [--rateplots <rateplot filename>] [--outputprefix <output prefix>] [--muonscaling <muon scaling filename>] [--offlinescaling <offline scaling filename>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
+			<< "\t" << executableName << " [--rateplots <rateplot filename>] [--outputprefix <output prefix>] [--format <CSV | OLD | XML>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
 			<< "\t" << "\t" << "Tries to fit the supplied menu using the sample provided. The optional \"rateplots\" option" << "\n"
 			<< "\t" << "\t" << "allows you to reuse a valid file created by l1menuCreateRatePlots which will significantly" << "\n"
 			<< "\t" << "\t" << "speed up execution. If the option \"outputprefix\" is supplied the results will be saved to" << "\n"
 			<< "\t" << "\t" << "a file with the name <output prefix>_<totalRate>kHz.txt. If this option isn't provided the" << "\n"
 			<< "\t" << "\t" << "output will be printed to standard output." << "\n"
-			<< "\t" << "\t" << "If \"muonscaling\" is set, the specified file will be used to calculate the muon scaling." << "\n"
+			<< "\t" << "\t" << "The 'format' option allows you specify what format the output will be in. XML (the default)" << "\n"
+			<< "\t" << "\t" << "is required to do the scaling with l1menuScaleMenuRates." << "\n"
 			<< "\n"
 			<< "\t" << executableName << " --help" << "\n"
 			<< "\t" << "\t" << "prints this help message"
@@ -43,8 +44,6 @@ int main( int argc, char* argv[] )
 	std::string menuFilename;
 	std::string ratePlotsFilename; // Filename for rateplots. This is optional and can be empty.
 	std::string outputPrefix; // A prefix for output filenames. This is optional and can be empty, in which case no files are produced.
-	std::string muonScalingFilename; // The filename of the file used to scale muon rates. Optional and can be empty.
-	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
 	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
 	std::vector<float> totalRates;
 
@@ -54,8 +53,6 @@ int main( int argc, char* argv[] )
 		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
 		commandLineParser.addOption( "rateplots", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "outputprefix", l1menu::tools::CommandLineParser::RequiredArgument );
-		commandLineParser.addOption( "muonscaling", l1menu::tools::CommandLineParser::RequiredArgument );
-		commandLineParser.addOption( "offlinescaling", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "format", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.parse( argc, argv );
 
@@ -68,8 +65,6 @@ int main( int argc, char* argv[] )
 		if( commandLineParser.nonOptionArguments().size()<3 ) throw std::runtime_error( "Not enough command line arguments" );
 		if( commandLineParser.optionHasBeenSet( "rateplots" ) ) ratePlotsFilename=commandLineParser.optionArguments("rateplots").back();
 		if( commandLineParser.optionHasBeenSet( "outputprefix" ) ) outputPrefix=commandLineParser.optionArguments("outputprefix").back();
-		if( commandLineParser.optionHasBeenSet( "muonscaling" ) ) muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
-		if( commandLineParser.optionHasBeenSet( "offlinescaling" ) ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
 		if( commandLineParser.optionHasBeenSet( "format" ) )
 		{
 			std::string formatString=commandLineParser.optionArguments("format").back();
@@ -139,44 +134,7 @@ int main( int argc, char* argv[] )
 			std::cout << "Fitting menu for a rate of " << totalRate << "kHz..."; std::cout.flush();
 			try
 			{
-//				l1menu::scalings::MuonAndMCScaling muonAndMCScaling( muonScalingFilename,
-//						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsMCMC_FallbackThr1_rates.root",
-//						"/home/xtaldaq/CMSSWReleases/CMSSW_5_3_4/src/v19Results/L1RateHist_8TeV45PU_25nsDataMC_FallbackThr1_rates.root" );
-//				l1menu::scalings::OnlineToOfflineScaling onlineToOfflineScaling( offlineScalingFilename );
-//
-//				// Use a smart pointer with a custom deleter that will close the file properly.
-//				std::unique_ptr<TFile,void(*)(TFile*)> pOriginalOutputFile( new TFile( "originalHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-//				std::unique_ptr<TFile,void(*)(TFile*)> pRootOnlineOutputFile( new TFile( "scaledOnlineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-//				std::unique_ptr<TFile,void(*)(TFile*)> pRootOfflineOutputFile( new TFile( "scaledOfflineHistograms.root", "RECREATE" ), [](TFile*p){p->Write();p->Close();delete p;} );
-//				for( size_t triggerNumber=0; triggerNumber<pMenuFitter->menu().numberOfTriggers(); ++triggerNumber )
-//				{
-//					const l1menu::TriggerRatePlot& originalPlot=pMenuFitter->triggerRatePlot(triggerNumber);
-//					std::unique_ptr<l1menu::TriggerRatePlot> pScaledPlot=muonAndMCScaling.scaleTriggerRatePlot( originalPlot );
-//					std::unique_ptr<l1menu::TriggerRatePlot> pOfflinePlot=onlineToOfflineScaling.scaleTriggerRatePlot( *pScaledPlot );
-//					const_cast<l1menu::TriggerRatePlot&>(originalPlot).getPlot()->SetDirectory( pOriginalOutputFile.get() );
-//					pScaledPlot->getPlot()->SetDirectory( pRootOnlineOutputFile.get() );
-//					pOfflinePlot->getPlot()->SetDirectory( pRootOfflineOutputFile.get() );
-//					const_cast<l1menu::TriggerRatePlot&>(originalPlot).relinquishOwnershipOfPlot();
-//					pScaledPlot->relinquishOwnershipOfPlot();
-//					pOfflinePlot->relinquishOwnershipOfPlot();
-//				}
-//
-//				throw std::runtime_error( "Can't be arsed waiting for the fit");
-//
-//				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
-//
-//				std::shared_ptr<const l1menu::IMenuRate> pScaledRates;
-//				if( !muonScalingFilename.empty() )
-//				{
-//					pScaledRates.reset( new l1menu::MenuRateMuonScaling( pRates, muonScalingFilename, *pMenuFitter ) );
-//				}
-//				else pScaledRates=pRates;
-//
-//				std::shared_ptr<const l1menu::IMenuRate> pOfflineRates;
-//				if( !offlineScalingFilename.empty() )
-//				{
-//					pOfflineRates.reset( new l1menu::MenuRateOfflineScaling( pScaledRates, offlineScalingFilename ) );
-//				}
+
 				std::shared_ptr<const l1menu::IMenuRate> pRates=pMenuFitter->fit( totalRate, totalRate*0.05 );
 
 				// If the user has specified filenames to save to, save the result to there
@@ -188,7 +146,6 @@ int main( int argc, char* argv[] )
 					if( !outputFile.is_open() ) std::cerr << "ERROR unable to open " << outputFilename.str() << " to store the output" << std::endl;
 					else
 					{
-//						l1menu::tools::dumpTriggerRates( outputFile, *pScaledRates, pOfflineRates.get() );
 						l1menu::tools::dumpTriggerRates( outputFile, *pRates, fileFormat );
 						std::cout << "Output saved to " << outputFilename.str() << std::endl;
 					}
@@ -197,7 +154,6 @@ int main( int argc, char* argv[] )
 				else
 				{
 					std::cout << "outputprefix not specified so dumping results to standard output" << "\n";
-//					l1menu::tools::dumpTriggerRates( std::cout, *pScaledRates, pOfflineRates.get() );
 					l1menu::tools::dumpTriggerRates( std::cout, *pRates, fileFormat );
 				}
 			}

@@ -31,7 +31,7 @@ namespace l1menu
 			 *
 			 * Definition is at the bottom of the file.
 			 * Required because scale(MenuRatePlots) needs to delegate to this, but needs to act directly on
-			 * the histogram.
+			 * the histogram rather than a copy.
 			 */
 			void scaleTriggerRatePlot( l1menu::TriggerRatePlot& unscaledPlot );
 			/** @brief Convenience method that just searches the IMenuRate for an ITriggerRate for the given trigger. */
@@ -136,9 +136,9 @@ std::unique_ptr<l1menu::IMenuRate> l1menu::scalings::MCDataScaling::scale( const
 	l1menu::implementation::MenuRateImplementation* pMenuRate=new l1menu::implementation::MenuRateImplementation;
 	std::unique_ptr<l1menu::IMenuRate> pReturnValue( pMenuRate );
 
-	// None of the rates change. What changes the thresholds on the triggers are modified
-	// so that they would give the same rate on the scaled rate plot as they do on the
-	// unscaled plot. So I can copy over all of the rates directly.
+	// None of the rates change. What changes are the thresholds on the triggers, which are
+	// modified so that they would give the same rate on the scaled rate plot as they do on
+	// the unscaled plot. So I can copy over all of the rates directly.
 	pMenuRate->setTotalFraction( unscaledMenuRate.totalFraction() );
 	pMenuRate->setTotalFractionError( unscaledMenuRate.totalFractionError() );
 	pMenuRate->setTotalRate( unscaledMenuRate.totalRate() );
