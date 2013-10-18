@@ -15,8 +15,6 @@
 #include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/stringManipulation.h"
 #include "l1menu/tools/CommandLineParser.h"
-#include "l1menu/scalings/MuonAndMCScaling.h"
-#include "l1menu/scalings/OnlineToOfflineScaling.h"
 #include <TFile.h>
 #include <TH1.h>
 

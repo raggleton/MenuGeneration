@@ -4,11 +4,14 @@
 #include <iostream>
 #include <map>
 #include <fstream>
+#include "l1menu/TriggerTable.h"
 #include "l1menu/TriggerRatePlot.h"
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/ITrigger.h"
 #include "l1menu/tools/stringManipulation.h"
+#include "l1menu/tools/miscellaneous.h"
+#include "../implementation/MenuRateImplementation.h"
 #include <TH1.h>
 
 //
@@ -26,17 +29,20 @@ namespace l1menu
 			// and the offset as "second".
 			std::map<std::string, std::vector<std::pair<float,float> > > triggerScalings_;
 			void performScaling( TH1* pHistogramToScale, const std::string& triggerName );
+			std::string detailedDescription_;
 		};
 
 	} // end of namespace scalings
 } // end of namespace l1menu
 
 l1menu::scalings::OnlineToOfflineScaling::OnlineToOfflineScaling( const std::string& offlineScalingFilename )
-	: pImple_( new OnlineToOfflineScalingPrivateMembers )
+	: pImple( new OnlineToOfflineScalingPrivateMembers )
 {
+	pImple->detailedDescription_="Online to offline scaling filename: '"+offlineScalingFilename+"'";
+
 	// Open the file that contains the scalings
 	std::ifstream inputFile( offlineScalingFilename );
-	if( !inputFile.is_open() ) throw std::runtime_error( "MenuRateOfflineScaling could not be constructed because the input file "+offlineScalingFilename+" could no be opened" );
+	if( !inputFile.is_open() ) throw std::runtime_error( "OnlineToOfflineScaling could not be constructed because the input file "+offlineScalingFilename+" could no be opened" );
 
 
 	char buffer[200];
@@ -51,7 +57,7 @@ l1menu::scalings::OnlineToOfflineScaling::OnlineToOfflineScaling( const std::str
 			std::vector<std::string> tableColumns=l1menu::tools::splitByWhitespace( buffer );
 
 			if( tableColumns.size()==1 && tableColumns[0].empty() ) continue; // Allow blank lines without giving a warning
-			if( tableColumns.size()!=9 ) throw std::runtime_error( "MenuRateOfflineScaling could not be constructed because the input file does not have the correct number of columns" );
+			if( tableColumns.size()!=9 ) throw std::runtime_error( "OnlineToOfflineScaling could not be constructed because the input file does not have the correct number of columns" );
 
 			// Read the trigger name and scalings from the file
 			std::string triggerName=tableColumns[0];
@@ -65,7 +71,7 @@ l1menu::scalings::OnlineToOfflineScaling::OnlineToOfflineScaling( const std::str
 			scalings.push_back( std::make_pair( convertStringToFloat(tableColumns[7]), convertStringToFloat(tableColumns[8]) ) );
 
 			// Then store them in the map
-			pImple_->triggerScalings_[triggerName]=scalings;
+			pImple->triggerScalings_[triggerName]=scalings;
 
 		} // end of try block
 		catch( std::runtime_error& exception )
@@ -84,7 +90,7 @@ l1menu::scalings::OnlineToOfflineScaling::~OnlineToOfflineScaling()
 
 std::string l1menu::scalings::OnlineToOfflineScaling::briefDescription()
 {
-	return "Scales online thresholds to offline thresholds.";
+	return "Online thresholds scaled to offline thresholds.";
 }
 
 std::string l1menu::scalings::OnlineToOfflineScaling::detailedDescription()
@@ -92,7 +98,7 @@ std::string l1menu::scalings::OnlineToOfflineScaling::detailedDescription()
 	return "I'll write this later.";
 }
 
-std::unique_ptr<l1menu::TriggerRatePlot> l1menu::scalings::OnlineToOfflineScaling::scaleTriggerRatePlot( const l1menu::TriggerRatePlot& unscaledPlot )
+std::unique_ptr<l1menu::TriggerRatePlot> l1menu::scalings::OnlineToOfflineScaling::scale( const l1menu::TriggerRatePlot& unscaledPlot )
 {
 	// Take a copy and work on that
 	std::unique_ptr<l1menu::TriggerRatePlot> pReturnValue( new l1menu::TriggerRatePlot( unscaledPlot ) );
@@ -101,12 +107,12 @@ std::unique_ptr<l1menu::TriggerRatePlot> l1menu::scalings::OnlineToOfflineScalin
 	// First make sure it's held in memory only. The user can change that later if they want.
 	pRawPlot->SetDirectory( nullptr );
 	// Delegate to a private method to do the work
-	pImple_->performScaling( pRawPlot, pReturnValue->getTrigger().name() );
+	pImple->performScaling( pRawPlot, pReturnValue->getTrigger().name() );
 
 	return pReturnValue;
 }
 
-std::unique_ptr<l1menu::MenuRatePlots> l1menu::scalings::OnlineToOfflineScaling::scaleMenuRatePlots( const l1menu::MenuRatePlots& unscaledPlots )
+std::unique_ptr<l1menu::MenuRatePlots> l1menu::scalings::OnlineToOfflineScaling::scale( const l1menu::MenuRatePlots& unscaledPlots )
 {
 	// First take a copy of the input and modify that directly
 	std::unique_ptr<l1menu::MenuRatePlots> pReturnValue( new l1menu::MenuRatePlots( unscaledPlots ) );
@@ -119,15 +125,72 @@ std::unique_ptr<l1menu::MenuRatePlots> l1menu::scalings::OnlineToOfflineScaling:
 		// later if they want.
 		pRawPlot->SetDirectory( nullptr );
 		// Delegate to a private method to do the work
-		pImple_->performScaling( pRawPlot, triggerRatePlot.getTrigger().name() );
+		pImple->performScaling( pRawPlot, triggerRatePlot.getTrigger().name() );
 	}
 
 	return pReturnValue;
 }
 
-std::shared_ptr<l1menu::IMenuRate> l1menu::scalings::OnlineToOfflineScaling::scaleMenuRate( const l1menu::IMenuRate& unscaledMenuRate )
+std::unique_ptr<l1menu::IMenuRate> l1menu::scalings::OnlineToOfflineScaling::scale( const l1menu::IMenuRate& unscaledMenuRate )
 {
-	throw std::logic_error("l1menu::scalings::OnlineToOfflineScaling::scaleMenuRate not implemented yet");
+	// Create a new MenuRateImplementation. I need to access the extra setters that aren't in IMenuRate so
+	// I'll keep hold of a raw pointer and operate on that.
+	l1menu::implementation::MenuRateImplementation* pMenuRate=new l1menu::implementation::MenuRateImplementation;
+	std::unique_ptr<l1menu::IMenuRate> pReturnValue( pMenuRate );
+
+	// None of the rates change. What changes are the thresholds on the triggers, which are
+	// modified so that they would give the same rate on the scaled rate plot as they do on
+	// the unscaled plot. So I can copy over all of the rates directly.
+	pMenuRate->setTotalFraction( unscaledMenuRate.totalFraction() );
+	pMenuRate->setTotalFractionError( unscaledMenuRate.totalFractionError() );
+	pMenuRate->setTotalRate( unscaledMenuRate.totalRate() );
+	pMenuRate->setTotalRateError( unscaledMenuRate.totalRateError() );
+
+	for( const auto& pUnscaledTriggerRate : unscaledMenuRate.triggerRates() )
+	{
+		const l1menu::ITriggerDescription& trigger=pUnscaledTriggerRate->trigger();
+
+		//
+		// First I'll get a copy of the trigger whether it's a muon trigger or not. If it is a muon
+		// trigger I'll overwrite the threshold information in the next "if" block. If it isn't, I'll
+		// just leave it as it is.
+		//
+		std::unique_ptr<l1menu::ITrigger> pScaledTrigger=l1menu::TriggerTable::instance().copyTrigger( trigger );
+
+		//
+		// Modify the trigger thresholds as required.
+		//
+		const auto& iFindResult=pImple->triggerScalings_.find( trigger.name() );
+		if( iFindResult!=pImple->triggerScalings_.end() ) // If there is no scaling provided just pass it on unchanged
+		{
+			// This vector will have four entries, regardless of whether the trigger has four thresholds.
+			// Normally the extra ones are just set to zero.
+			const std::vector< std::pair<float,float> >& scalings=iFindResult->second;
+			// Loop over the threshold names of the trigger.
+			const std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( *pScaledTrigger );
+			for( size_t index=0; index<thresholdNames.size(); ++index )
+			{
+				float unscaledThreshold=pScaledTrigger->parameter( thresholdNames[index] );
+				float slope=scalings[index].first;
+				float offset=scalings[index].second;
+				pScaledTrigger->parameter( thresholdNames[index] )=unscaledThreshold*slope+offset;
+			}
+		}
+
+
+		// Now I can add the TriggerRate to the MenuRate. It it was a muon trigger the thresholds will have been
+		// scaled, if it wasn't then it will be exactly the same. I can always copy the rates straight over because
+		// it's the thresholds that are scaled.
+		l1menu::implementation::TriggerRateImplementation scaledTriggerRate( *pScaledTrigger,
+				pUnscaledTriggerRate->fraction(), pUnscaledTriggerRate->fractionError(),
+				pUnscaledTriggerRate->rate(), pUnscaledTriggerRate->rateError(),
+				pUnscaledTriggerRate->pureFraction(), pUnscaledTriggerRate->pureFractionError(),
+				pUnscaledTriggerRate->pureRate(), pUnscaledTriggerRate->pureRateError() );
+		pMenuRate->addTriggerRate( std::move(scaledTriggerRate) );
+
+	} // end of loop over unscaled TriggerRates
+
+	return pReturnValue;
 }
 
 void l1menu::scalings::OnlineToOfflineScalingPrivateMembers::performScaling( TH1* pHistogramToScale, const std::string& triggerName )

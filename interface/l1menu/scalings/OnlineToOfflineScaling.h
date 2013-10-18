@@ -24,11 +24,11 @@ namespace l1menu
 			virtual ~OnlineToOfflineScaling();
 			virtual std::string briefDescription();
 			virtual std::string detailedDescription();
-			virtual std::unique_ptr<l1menu::TriggerRatePlot> scaleTriggerRatePlot( const l1menu::TriggerRatePlot& unscaledPlot );
-			virtual std::unique_ptr<l1menu::MenuRatePlots> scaleMenuRatePlots( const l1menu::MenuRatePlots& unscaledPlots );
-			virtual std::shared_ptr<l1menu::IMenuRate> scaleMenuRate( const l1menu::IMenuRate& unscaledMenuRate );
+			virtual std::unique_ptr<l1menu::TriggerRatePlot> scale( const l1menu::TriggerRatePlot& unscaledPlot );
+			virtual std::unique_ptr<l1menu::MenuRatePlots> scale( const l1menu::MenuRatePlots& unscaledPlots );
+			virtual std::unique_ptr<l1menu::IMenuRate> scale( const l1menu::IMenuRate& unscaledMenuRate );
 		private:
-			std::unique_ptr<class OnlineToOfflineScalingPrivateMembers> pImple_;
+			std::unique_ptr<class OnlineToOfflineScalingPrivateMembers> pImple;
 		};
 
 	} // end of namespace scalings

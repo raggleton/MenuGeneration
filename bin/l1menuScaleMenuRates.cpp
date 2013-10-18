@@ -10,6 +10,7 @@
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/scalings/MCDataScaling.h"
 #include "l1menu/scalings/MuonScaling.h"
+#include "l1menu/scalings/OnlineToOfflineScaling.h"
 #include <TFile.h>
 
 namespace // Unnamed namespace for things only used in this file
@@ -22,7 +23,8 @@ void printUsage( const std::string& executableName, std::ostream& output=std::co
 	output << "Usage:" << "\n"
 			<< "\t" << executableName << "  [--rateplots <unscaled rateplot filename>] [--muonscaling <muon scaling filename>]" << "\n"
 			<< "\t" << std::setw(executableName.size()) << " " << "    [--datascaling <data scaling filename> --montecarloscaling <MC scaling filename>]" << "\n"
-			<< "\t" << std::setw(executableName.size()) << " " << "    [--format <CSV | OLD | XML>] <menu rate to scale 1> [menu rate to scale 2] [menu rate to scale 3]..." << "\n"
+			<< "\t" << std::setw(executableName.size()) << " " << "    [--format <CSV | OLD | XML>] [--offlinescaling <offline scaling file>]" << "\n"
+			<< "\t" << std::setw(executableName.size()) << " " << "    <menu rate to scale 1> [menu rate to scale 2] [menu rate to scale 3]..." << "\n"
 			<< "\t" << "\t" << "Scales the provided menu rates with the scaling options provided. The menu rates should be in XML" << "\n"
 			<< "\t" << "\t" << "format, i.e. the output from l1menuFitMenu or l1menuCalculateRate with the '--format XML' option." << "\n"
 			<< "\t" << "\t" << "Most of the scalings require 'rateplots' to be set, which should be the unscaled output from the " << "\n"
@@ -78,7 +80,6 @@ int main( int argc, char* argv[] )
 			muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
 			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MuonScaling(muonScalingFilename,unscaledRatesFilename) ) );
 		}
-		if( commandLineParser.optionHasBeenSet("offlinescaling") ) throw std::runtime_error( "Sorry, the 'offlinescaling' option has not been implemented yet." );
 		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
 		{
 			if( !commandLineParser.optionHasBeenSet("montecarloscaling") ) throw std::runtime_error( "If the 'datascaling' option is set then 'montecarloscaling' must also be set.");
@@ -90,6 +91,10 @@ int main( int argc, char* argv[] )
 				std::string dataFilename=commandLineParser.optionArguments("datascaling").back();
 				scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MCDataScaling(monteCarloFilename,dataFilename,unscaledRatesFilename) ) );
 			}
+		}
+		if( commandLineParser.optionHasBeenSet("offlinescaling") )
+		{
+			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::OnlineToOfflineScaling(commandLineParser.optionArguments("offlinescaling").back()) ) );
 		}
 
 		if( scalingsToApply.empty() ) std::cout << "No scalings have been requested on the command line. Is this really what you want?"
