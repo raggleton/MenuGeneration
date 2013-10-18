@@ -33,8 +33,16 @@ namespace l1menu
 		class MenuRateImplementation : public l1menu::IMenuRate
 		{
 		public:
+			MenuRateImplementation();
 			MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample );
 			MenuRateImplementation( const l1menu::tools::XMLElement& xmlDescription );
+
+			// Methods to allow modification of the underlying data
+			void setTotalFraction( float totalFraction );
+			void setTotalFractionError( float totalFractionError );
+			void setTotalRate( float totalRate );
+			void setTotalRateError( float totalRateError );
+			void addTriggerRate( l1menu::implementation::TriggerRateImplementation&& triggerRate );
 
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;
@@ -42,8 +50,6 @@ namespace l1menu
 			virtual float totalRate() const;
 			virtual float totalRateError() const;
 			virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const;
-		protected:
-			MenuRateImplementation();
 		protected:
 			float totalFraction_;
 			float totalFractionError_;

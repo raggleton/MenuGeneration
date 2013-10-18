@@ -160,6 +160,31 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	}
 }
 
+void l1menu::implementation::MenuRateImplementation::setTotalFraction( float totalFraction )
+{
+	totalFraction_=totalFraction;
+}
+
+void l1menu::implementation::MenuRateImplementation::setTotalFractionError( float totalFractionError )
+{
+	totalFractionError_=totalFractionError;
+}
+
+void l1menu::implementation::MenuRateImplementation::setTotalRate( float totalRate )
+{
+	totalRate_=totalRate;
+}
+
+void l1menu::implementation::MenuRateImplementation::setTotalRateError( float totalRateError )
+{
+	totalRateError_=totalRateError;
+}
+
+void l1menu::implementation::MenuRateImplementation::addTriggerRate( l1menu::implementation::TriggerRateImplementation&& triggerRate )
+{
+	triggerRates_.push_back( std::move(triggerRate) );
+}
+
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation()
 {
 	// No operation.
