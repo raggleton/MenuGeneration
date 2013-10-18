@@ -65,7 +65,6 @@ l1menu::scalings::MCDataScaling::MCDataScaling( const std::string& monteCarloRat
 {
 	pImple->detailedDescription_="Data rate filename: \""+dataRatesFilename+"\", Monte Carlo rate filename: \""+monteCarloRatesFilename+"\"";
 
-std::cout << "MCDataScaling created with " << detailedDescription() << std::endl;
 	// Create copies of all of the rate plots
 	std::unique_ptr<TFile> pRatePlotsRootFile( TFile::Open( monteCarloRatesFilename.c_str() ) );
 	pImple->pMonteCarloRatePlots_.reset( new l1menu::MenuRatePlots( pRatePlotsRootFile.get() ) );
@@ -174,20 +173,13 @@ std::unique_ptr<l1menu::IMenuRate> l1menu::scalings::MCDataScaling::scale( const
 		// so that I can use the findThreshold method. This constructor takes a copy of the histogram so
 		// I don't need to worry about the modifications I'm about to do.
 		l1menu::TriggerRatePlot scaledTriggerRatePlot( pUnscaledRateRawPlot );
-		std::cout << "\n";
-		float unscaledFoundThreshold=scaledTriggerRatePlot.findThreshold( pUnscaledTriggerRate->rate() );
 		// Now scale it for the data/MC differences
 		scaledTriggerRatePlot.getPlot()->Multiply( pDataRateRawPlot );
 		scaledTriggerRatePlot.getPlot()->Divide( pMonteCarloRateRawPlot );
 
 		// Now that I have the scaled plot, I can read off what threshold gives the same rate
 		// as the unscaled threshold.
-		std::cout << "Unscaled threshold=" << trigger.parameter( scaledTriggerRatePlot.versusParameter() ) << " unscaled interpolated threshold=" << unscaledFoundThreshold << std::endl;
 		float scaledThreshold=scaledTriggerRatePlot.findThreshold( pUnscaledTriggerRate->rate() );
-		std::cout << "Scaling " << trigger.name() << " with unscaled plot title " << pUnscaledRateRawPlot->GetTitle() << std::endl;
-		std::cout << "Scaling " << trigger.name() << " with data plot title " << pDataRateRawPlot->GetTitle() << std::endl;
-		std::cout << "Scaling " << trigger.name() << " with Monte Carlo plot title " << pMonteCarloRateRawPlot->GetTitle() << std::endl;
-//if( scaledThreshold==0 ) std::cout << "Threshold=0 for " << trigger.name() << " rate=" << pUnscaledTriggerRate->rate() << std::endl;
 
 		// Get a copy of the trigger
 		std::unique_ptr<l1menu::ITrigger> pScaledTrigger=l1menu::TriggerTable::instance().copyTrigger( trigger );
