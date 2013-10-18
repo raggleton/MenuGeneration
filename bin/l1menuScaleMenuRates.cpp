@@ -8,6 +8,7 @@
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/scalings/MCDataScaling.h"
+#include "l1menu/scalings/MuonScaling.h"
 #include <TFile.h>
 
 namespace // Unnamed namespace for things only used in this file
@@ -58,7 +59,12 @@ int main( int argc, char* argv[] )
 
 		if( commandLineParser.nonOptionArguments().empty() ) throw std::runtime_error( "You need to specify a filename for at least one MenuRate" );
 		if( commandLineParser.optionHasBeenSet("rateplots") ) unscaledRatesFilename=commandLineParser.optionArguments("rateplots").back();
-		if( commandLineParser.optionHasBeenSet("muonscaling") ) muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
+		if( commandLineParser.optionHasBeenSet("muonscaling") )
+		{
+			if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for muons also requires the unscaled rate plots set with the 'rateplots' option" );
+			muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
+			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MuonScaling(muonScalingFilename,unscaledRatesFilename) ) );
+		}
 		if( commandLineParser.optionHasBeenSet("offlinescaling") ) offlineScalingFilename=commandLineParser.optionArguments("offlinescaling").back();
 		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
 		{
@@ -66,9 +72,9 @@ int main( int argc, char* argv[] )
 			else if( !commandLineParser.optionHasBeenSet("datascaling") ) throw std::runtime_error( "If the 'montecarloscaling' option is set then 'datascaling' must also be set.");
 			else
 			{
+				if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for data/Monte Carlo also requires the unscaled rate plots set with the 'rateplots' option" );
 				std::string monteCarloFilename=commandLineParser.optionArguments("montecarloscaling").back();
 				std::string dataFilename=commandLineParser.optionArguments("datascaling").back();
-				if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for data/Monte Carlo also requires the unscaled rate plots set with the 'rateplots' option" );
 				scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MCDataScaling(monteCarloFilename,dataFilename,unscaledRatesFilename) ) );
 			}
 		}
