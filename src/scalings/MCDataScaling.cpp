@@ -45,7 +45,9 @@ namespace l1menu
 l1menu::scalings::MCDataScaling::MCDataScaling( const std::string& monteCarloRatesFilename, const std::string& dataRatesFilename )
 	: pImple( new MCDataScalingPrivateMembers )
 {
-	pImple->detailedDescription_="Data rate filename: \""+dataRatesFilename+"\", Monte Carlo rate filename: \""+monteCarloRatesFilename+"\"";
+	pImple->detailedDescription_="Data rate filename: '"+dataRatesFilename+"', "
+			+ "Monte Carlo rate filename: '"+monteCarloRatesFilename+"', "
+			+ "no unscaled rate filename supplied";
 
 
 	// Create copies of all of the rate plots
@@ -63,7 +65,9 @@ l1menu::scalings::MCDataScaling::MCDataScaling( const std::string& monteCarloRat
 l1menu::scalings::MCDataScaling::MCDataScaling( const std::string& monteCarloRatesFilename, const std::string& dataRatesFilename, const std::string& unscaledRatesFilename )
 	: pImple( new MCDataScalingPrivateMembers )
 {
-	pImple->detailedDescription_="Data rate filename: \""+dataRatesFilename+"\", Monte Carlo rate filename: \""+monteCarloRatesFilename+"\"";
+	pImple->detailedDescription_="Data rate filename: '"+dataRatesFilename+"', "
+			+ "Monte Carlo rate filename: '"+monteCarloRatesFilename+"', "
+			+ "unscaled rate filename: '"+unscaledRatesFilename+"'";
 
 	// Create copies of all of the rate plots
 	std::unique_ptr<TFile> pRatePlotsRootFile( TFile::Open( monteCarloRatesFilename.c_str() ) );
