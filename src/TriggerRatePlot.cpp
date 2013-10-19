@@ -338,7 +338,7 @@ bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITriggerDescription&
 		float parameterScaling=trigger.parameter(*iScaledParameterName)/mainThreshold;
 		// Make sure they're equal. Float equality is a bit dodgy so I'll just check the
 		// difference is less than an arbitrarily small amount.
-		if( std::fabs(parameterScaling-thisTriggerParameterScaling) > std::pow( 10, -5 ) ) return false;
+		if( std::fabs(parameterScaling-thisTriggerParameterScaling) > std::pow( 10, -4 ) ) return false;
 
 		++iScaledParameterName;
 	}
