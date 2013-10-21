@@ -74,12 +74,6 @@ int main( int argc, char* argv[] )
 			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
 		}
 		if( commandLineParser.optionHasBeenSet("rateplots") ) unscaledRatesFilename=commandLineParser.optionArguments("rateplots").back();
-		if( commandLineParser.optionHasBeenSet("muonscaling") )
-		{
-			if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for muons also requires the unscaled rate plots set with the 'rateplots' option" );
-			muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
-			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MuonScaling(muonScalingFilename,unscaledRatesFilename) ) );
-		}
 		if( commandLineParser.optionHasBeenSet("montecarloscaling") || commandLineParser.optionHasBeenSet("datascaling") )
 		{
 			if( !commandLineParser.optionHasBeenSet("montecarloscaling") ) throw std::runtime_error( "If the 'datascaling' option is set then 'montecarloscaling' must also be set.");
@@ -91,6 +85,12 @@ int main( int argc, char* argv[] )
 				std::string dataFilename=commandLineParser.optionArguments("datascaling").back();
 				scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MCDataScaling(monteCarloFilename,dataFilename,unscaledRatesFilename) ) );
 			}
+		}
+		if( commandLineParser.optionHasBeenSet("muonscaling") )
+		{
+			if( unscaledRatesFilename.empty() ) throw std::runtime_error( "Scaling for muons also requires the unscaled rate plots set with the 'rateplots' option" );
+			muonScalingFilename=commandLineParser.optionArguments("muonscaling").back();
+			scalingsToApply.push_back( std::unique_ptr<l1menu::IScaling>( new l1menu::scalings::MuonScaling(muonScalingFilename,unscaledRatesFilename) ) );
 		}
 		if( commandLineParser.optionHasBeenSet("offlinescaling") )
 		{
