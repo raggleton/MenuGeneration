@@ -21,7 +21,7 @@
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
 {
 	output << "Usage:" << "\n"
-			<< "\t" << executableName << " [--rateplots <rateplot filename>] [--outputprefix <output prefix>] [--format <CSV | OLD | XML>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
+			<< "\t" << executableName << " --totalrate <total rate in kHz> [--rateplots <rateplot filename>] [--outputprefix <output prefix>] [--format <CSV | OLD | XML>] <sample filename> <menu filename> <totalRate1> [totalRate2 [totalRate3 [...] ] ]" << "\n"
 			<< "\t" << "\t" << "Tries to fit the supplied menu using the sample provided. The optional \"rateplots\" option" << "\n"
 			<< "\t" << "\t" << "allows you to reuse a valid file created by l1menuCreateRatePlots which will significantly" << "\n"
 			<< "\t" << "\t" << "speed up execution. If the option \"outputprefix\" is supplied the results will be saved to" << "\n"
@@ -43,12 +43,14 @@ int main( int argc, char* argv[] )
 	std::string ratePlotsFilename; // Filename for rateplots. This is optional and can be empty.
 	std::string outputPrefix; // A prefix for output filenames. This is optional and can be empty, in which case no files are produced.
 	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+	float totalTriggerRatekHz; // The rate if every single event passed
 	std::vector<float> totalRates;
 
 	l1menu::tools::CommandLineParser commandLineParser;
 	try
 	{
 		commandLineParser.addOption( "help", l1menu::tools::CommandLineParser::NoArgument );
+		commandLineParser.addOption( "totalrate", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "rateplots", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "outputprefix", l1menu::tools::CommandLineParser::RequiredArgument );
 		commandLineParser.addOption( "format", l1menu::tools::CommandLineParser::RequiredArgument );
@@ -71,6 +73,29 @@ int main( int argc, char* argv[] )
 			else if( formatString=="CSV" ) fileFormat=l1menu::tools::FileFormat::CSVFORMAT;
 			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
 		}
+
+		//
+		// Code to work out what to scale to
+		//
+		if( commandLineParser.optionHasBeenSet("totalrate") )
+		{
+			totalTriggerRatekHz=l1menu::tools::convertStringToFloat( commandLineParser.optionArguments("totalrate").back() );
+		}
+		else
+		{
+			std::cerr << "An option to set the scaling has not been set (with 'totalrate'). Scaling to a default of 100 pileup at 4.4E34." << std::endl;
+			// I'll leave all these numbers in to make clear how the final result is calculated.
+			const float scaleToKiloHz=1.0/1000.0;
+			const float orbitsPerSecond=11246;
+			const float bunchSpacing=25;
+			float numberOfBunches;
+			if( bunchSpacing==50 ) numberOfBunches=1380;
+			else if( bunchSpacing==25 ) numberOfBunches=2760;
+			else throw std::logic_error( "The number of bunches has not been programmed for the bunch spacing selected" );
+
+			totalTriggerRatekHz=orbitsPerSecond*numberOfBunches*scaleToKiloHz;
+		}
+
 
 		const std::vector<std::string>& arguments=commandLineParser.nonOptionArguments();
 		sampleFilename=arguments[0];
@@ -98,18 +123,9 @@ int main( int argc, char* argv[] )
 
 	try
 	{
-		const float scaleToKiloHz=1.0/1000.0;
-		const float orbitsPerSecond=11246;
-		const float bunchSpacing=25;
-		float numberOfBunches;
-		if( bunchSpacing==50 ) numberOfBunches=1380;
-		else if( bunchSpacing==25 ) numberOfBunches=2760;
-		else throw std::logic_error( "The number of bunches has not been programmed for the bunch spacing selected" );
-
-
 		std::cout << "Loading sample from the file " << sampleFilename << std::endl;
 		std::unique_ptr<l1menu::ISample> pSample=l1menu::tools::loadSample( sampleFilename );
-		pSample->setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
+		pSample->setEventRate( totalTriggerRatekHz );
 
 		std::unique_ptr<l1menu::MenuFitter> pMenuFitter;
 		if( ratePlotsFilename.empty() ) pMenuFitter.reset( new l1menu::MenuFitter(*pSample) );
