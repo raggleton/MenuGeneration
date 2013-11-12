@@ -2,7 +2,7 @@
 # shebang was previously /opt/local/bin/python
 
 
-from ROOT import TH1D, TCanvas, TPad, TAxis, TFile, TLegend
+from ROOT import TH1D, TCanvas, TPad, TAxis, TFile, TLegend, TLine
 import math
 import sys
 
@@ -22,6 +22,7 @@ class TriggerRate(object):
 		TriggerRate.instantiationCount+=1
 
 		self.histograms=[]
+		self.verticalLines=[]
 		# Create a legend. This might not actually be plotted if drawLegend is changed to False
 		self.legend=TLegend( 0.59, 0.72*0.9, 0.99, 0.95*0.9 )
 		self.legend.SetTextSize( 0.04 )
@@ -55,10 +56,18 @@ class TriggerRate(object):
 		self.histograms[-1].GetXaxis().SetTitle( "Offline threshold/GeV" )
 		self.legend.AddEntry( self.histograms[-1], legendTitle )
 		# See if the histogram maximum is larger than the current maximum
-		bin=self.histograms[-1].GetMaximumBin()
-		try: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinErrorUp(bin)
-		except: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinError(bin)
-		if max>self.maxiumumBinHeight: self.maxiumumBinHeight=max
+		# I can have a look at histogram.GetMaximumBin() but that doesn't include
+		# the error, which I want.
+		for bin in range(1,self.histograms[-1].GetXaxis().GetNbins()+1) :
+			#bin=self.histograms[-1].GetMaximumBin()
+			try: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinErrorUp(bin)
+			except: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinError(bin)
+			if max>self.maxiumumBinHeight: self.maxiumumBinHeight=max
+
+	def addVerticalLine( self, xPosition, colour=1, thickness=3 ):
+		self.verticalLines.append( TLine( xPosition, 0.00001, xPosition, self.maxiumumBinHeight ) )
+		self.verticalLines[-1].SetLineColor( colour )
+		self.verticalLines[-1].SetLineWidth( thickness )
 		
 	def draw( self ) :
 		self.pad.cd()
@@ -69,6 +78,10 @@ class TriggerRate(object):
 			self.histograms[index].GetXaxis().SetTitleSize( self.axisTitleSize );
 			if index==0: self.histograms[index].Draw()
 			else: self.histograms[index].Draw("same")
+		for line in self.verticalLines :
+			line.SetY1( self.histograms[0].GetYaxis().GetXmin() )
+			line.SetY2( self.maxiumumBinHeight*1.2 )
+			line.Draw()
 		if self.drawLegend: self.legend.Draw()
 		self.pad.Update()
 
@@ -85,6 +98,7 @@ class TriggerRateRatio(object):
 		TriggerRateRatio.instantiationCount+=1
 
 		self.ratioHistograms=[]
+		self.verticalLines=[]
 		self.maxiumumBinHeight=0;
 		self.minimumBinHeight=999999999;
 
@@ -127,21 +141,25 @@ class TriggerRateRatio(object):
 			self.ratioHistograms[-1].SetBinContent( binNumber, rateRatio )
 			self.ratioHistograms[-1].SetBinError( binNumber, error )
 		# Work out the maximum and minimums
-		bin=self.ratioHistograms[-1].GetMaximumBin()
-		try: max=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinErrorUp(bin)
-		except: max=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinError(bin)
-		if max>self.maxiumumBinHeight: self.maxiumumBinHeight=max
-		bin=self.ratioHistograms[-1].GetMinimumBin()
-		try: min=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinErrorDown(bin)
-		except: min=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinError(bin)
-		if min<self.minimumBinHeight: self.minimumBinHeight=min
+		for bin in range(1,self.ratioHistograms[-1].GetXaxis().GetNbins()+1) :
+			try: max=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinErrorUp(bin)
+			except: max=self.ratioHistograms[-1].GetBinContent(bin)+self.ratioHistograms[-1].GetBinError(bin)
+			if max>self.maxiumumBinHeight: self.maxiumumBinHeight=max
+			
+			try: min=self.ratioHistograms[-1].GetBinContent(bin)-self.ratioHistograms[-1].GetBinErrorDown(bin)
+			except: min=self.ratioHistograms[-1].GetBinContent(bin)-self.ratioHistograms[-1].GetBinError(bin)
+			if min<self.minimumBinHeight: self.minimumBinHeight=min
 
+	def addVerticalLine( self, xPosition, colour=1, thickness=3 ):
+		self.verticalLines.append( TLine( xPosition, self.minimumBinHeight, xPosition, self.maxiumumBinHeight ) )
+		self.verticalLines[-1].SetLineColor( colour )
+		self.verticalLines[-1].SetLineWidth( thickness )
 
 	def draw(self):
 		self.pad.cd()
 		for index in range(0,len(self.ratioHistograms)):
-			self.ratioHistograms[index].SetMaximum( self.maxiumumBinHeight*1.2 )
-			self.ratioHistograms[index].SetMinimum( self.minimumBinHeight*0.8 )
+			self.ratioHistograms[index].SetMaximum( self.maxiumumBinHeight )
+			self.ratioHistograms[index].SetMinimum( self.minimumBinHeight )
 			self.ratioHistograms[index].GetYaxis().SetTitleSize( self.axisTitleSize );
 			self.ratioHistograms[index].GetXaxis().SetTitleSize( self.axisTitleSize );
 			self.ratioHistograms[index].GetYaxis().SetLabelSize( self.axisLabelSize );
@@ -149,6 +167,10 @@ class TriggerRateRatio(object):
 			self.ratioHistograms[index].GetYaxis().SetTitleOffset( self.axisTitleOffset );
 			if index==0: self.ratioHistograms[index].Draw()
 			else: self.ratioHistograms[index].Draw("same")
+		for line in self.verticalLines :
+			line.SetY1( self.minimumBinHeight )
+			line.SetY2( self.maxiumumBinHeight )
+			line.Draw()
 		self.pad.Update()
 
 class TriggerRateComparisonPlot(object):
@@ -196,7 +218,11 @@ class TriggerRateComparisonPlot(object):
 		# Try the name when there is only one threshold
 		histogram=file.Get( "L1_"+triggerName+"_v_threshold1" )
 		if histogram != None : return self.add( histogram, legendName )
-	
+
+	def addVerticalLine( self, xPosition, colour=1, thickness=3 ):
+		self.ratePlot.addVerticalLine( xPosition, colour, thickness )	
+		self.ratioPlot.addVerticalLine( xPosition, colour, thickness )	
+
 	def draw(self):
 		self.ratePlot.axisTitleSize=0.053
 		self.ratioPlot.axisLabelSize=self.ratePlot.axisLabelSize*self.padRatio
