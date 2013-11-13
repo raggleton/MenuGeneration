@@ -142,7 +142,7 @@ namespace // Unnamed namespace for things only used in this file
 			const auto& trigger=pRate->trigger();
 			//output << "Trigger " << pRate->trigger().name() << " has fraction " << pRate->fraction() << " and rate " << pRate->rate() << "kHz, pure " << pRate->pureRate() << "kHz" << std::endl;
 			// Print the name
-			output << std::setw(23) << trigger.name();
+			output << std::left << std::setw(23) << trigger.name();
 
 			// Print the thresholds
 			std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( trigger );
