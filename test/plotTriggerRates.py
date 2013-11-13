@@ -32,6 +32,7 @@ class TriggerRate(object):
 		self.pad.SetGrid()
 		self.pad.SetLogy()
 		self.maxiumumBinHeight=0
+		self.minimumBinHeight=999999999;
 		self.axisLabelSize=None
 		self.axisTitleSize=None
 		self.axisTitleOffset=None
@@ -63,6 +64,10 @@ class TriggerRate(object):
 			try: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinErrorUp(bin)
 			except: max=self.histograms[-1].GetBinContent(bin)+self.histograms[-1].GetBinError(bin)
 			if max>self.maxiumumBinHeight: self.maxiumumBinHeight=max
+			# Minimum is not actaully used to change the plot, but I need to know it to draw any vertical lines
+			try: min=self.histograms[-1].GetBinContent(bin)-self.histograms[-1].GetBinErrorDown(bin)
+			except: min=self.histograms[-1].GetBinContent(bin)-self.histograms[-1].GetBinError(bin)
+			if min<self.minimumBinHeight: self.minimumBinHeight=min
 
 	def addVerticalLine( self, xPosition, colour=1, thickness=3 ):
 		self.verticalLines.append( TLine( xPosition, 0.00001, xPosition, self.maxiumumBinHeight ) )
@@ -72,6 +77,7 @@ class TriggerRate(object):
 	def draw( self ) :
 		self.pad.cd()
 		for index in range(0,len(self.histograms)):
+			#self.histograms[index].SetMinimum( self.minimumBinHeight*0.9 )
 			self.histograms[index].SetMaximum( self.maxiumumBinHeight*1.2 )
 			self.histograms[index].GetYaxis().SetTitleSize( self.axisTitleSize );
 			self.histograms[index].GetYaxis().SetTitleOffset( self.axisTitleOffset );
@@ -79,7 +85,7 @@ class TriggerRate(object):
 			if index==0: self.histograms[index].Draw()
 			else: self.histograms[index].Draw("same")
 		for line in self.verticalLines :
-			line.SetY1( self.histograms[0].GetYaxis().GetXmin() )
+			line.SetY1( self.minimumBinHeight*0.9 )
 			line.SetY2( self.maxiumumBinHeight*1.2 )
 			line.Draw()
 		if self.drawLegend: self.legend.Draw()
@@ -236,13 +242,16 @@ class TriggerRateComparisonPlot(object):
 
 
 #triggers = ["SingleEG"]
-triggers = ["SingleEG","SingleIsoEG","SingleMu",
-"SingleIsoMu","SingleIsoTau","isoEG_EG","isoMu_Mu","isoTau_Tau",
-"isoEG_Mu","isoMu_EG","isoMu_Tau","SingleJetC","DoubleJet",
+triggers = ["SingleEG","SingleIsoEG",
+"SingleMu","SingleIsoMu",
+"SingleTau","SingleIsoTau",
+"isoEG_EG","isoMu_Mu","isoTau_Tau","isoEG_Mu","isoMu_EG","isoEG_Tau","isoMu_Tau",
+"SingleJetC","DoubleJet","QuadJetC",#"SixJet",
+"SingleIsoEG_CJet",
 "SingleMu_CJet",
-"SingleIsoEG_HTM","SingleMu_HTM","HTM","HTT",
-"QuadJetC",#"SixJet",
-"SingleIsoEG_CJet","SingleTau","isoEG_Tau"
+"SingleIsoEG_HTM",
+"SingleMu_HTM",
+"HTM","HTT"
 ]
 
 plots = []
