@@ -14,6 +14,10 @@ namespace l1menu
 	class ITriggerRate;
 	class TriggerMenu;
 	class ISample;
+	namespace tools
+	{
+		class XMLElement;
+	}
 }
 
 
@@ -29,12 +33,17 @@ namespace l1menu
 		class MenuRateImplementation : public l1menu::IMenuRate
 		{
 		public:
+			MenuRateImplementation();
 			MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample );
-			float weightOfAllEvents() const;
-			float weightOfAllEventsPassingAnyTrigger() const;
-			float weightSquaredOfAllEventsPassingAnyTrigger() const;
+			MenuRateImplementation( const l1menu::tools::XMLElement& xmlDescription );
 
-			float scaling() const;
+			// Methods to allow modification of the underlying data
+			void setTotalFraction( float totalFraction );
+			void setTotalFractionError( float totalFractionError );
+			void setTotalRate( float totalRate );
+			void setTotalRateError( float totalRateError );
+			void addTriggerRate( l1menu::implementation::TriggerRateImplementation&& triggerRate );
+
 			// Methods required by the l1menu::IMenuRate interface
 			virtual float totalFraction() const;
 			virtual float totalFractionError() const;
@@ -42,13 +51,13 @@ namespace l1menu
 			virtual float totalRateError() const;
 			virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const;
 		protected:
-			float weightOfAllEvents_;
-			float weightOfEventsPassingAnyTrigger_;
-			float weightSquaredOfEventsPassingAnyTrigger_;
-			float scaling_;
+			float totalFraction_;
+			float totalFractionError_;
+			float totalRate_;
+			float totalRateError_;
 			std::vector<TriggerRateImplementation> triggerRates_;
 		private:
-			mutable std::vector<const l1menu::ITriggerRate*> baseClassReferences_;
+			mutable std::vector<const l1menu::ITriggerRate*> baseClassPointers_; ///< Vector to return for calls to triggerRates()
 		};
 
 

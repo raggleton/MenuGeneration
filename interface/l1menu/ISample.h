@@ -38,7 +38,7 @@ namespace l1menu
 		/** @brief The sum of every event's weights. */
 		virtual float sumOfWeights() const = 0;
 
-		virtual std::unique_ptr<const l1menu::IMenuRate> rate( const l1menu::TriggerMenu& menu ) const = 0;
+		virtual std::shared_ptr<const l1menu::IMenuRate> rate( const l1menu::TriggerMenu& menu ) const = 0;
 	};
 
 } // end of namespace l1menu

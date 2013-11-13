@@ -6,20 +6,20 @@
 #include "l1menu/IEvent.h"
 #include "l1menu/ISample.h"
 #include "l1menu/TriggerTable.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "l1menu/tools/stringManipulation.h"
 #include <TH1F.h>
 #include <sstream>
 #include <algorithm>
 #include <stdexcept>
 
-l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::ITrigger& trigger, std::unique_ptr<TH1> pHistogram, const std::string& versusParameter, const std::vector<std::string> scaledParameters )
+l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::ITriggerDescription& trigger, std::unique_ptr<TH1> pHistogram, const std::string& versusParameter, const std::vector<std::string> scaledParameters )
 	: pHistogram_( std::move(pHistogram) ), versusParameter_(versusParameter), histogramOwnedByMe_(true)
 {
 	initiate( trigger, scaledParameters );
 }
 
-l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::ITrigger& trigger, const std::string& name, size_t numberOfBins, float lowEdge, float highEdge, const std::string& versusParameter, const std::vector<std::string> scaledParameters )
+l1menu::TriggerRatePlot::TriggerRatePlot( const l1menu::ITriggerDescription& trigger, const std::string& name, size_t numberOfBins, float lowEdge, float highEdge, const std::string& versusParameter, const std::vector<std::string> scaledParameters )
 	: pHistogram_( new TH1F( name.c_str(), "This title gets changed later", numberOfBins, lowEdge, highEdge ) ), versusParameter_(versusParameter), histogramOwnedByMe_(true)
 {
 	pHistogram_->SetDirectory( NULL ); // Hold in memory only
@@ -136,7 +136,7 @@ l1menu::TriggerRatePlot& l1menu::TriggerRatePlot::operator=( l1menu::TriggerRate
 	return *this;
 }
 
-void l1menu::TriggerRatePlot::initiate( const l1menu::ITrigger& trigger, const std::vector<std::string>& scaledParameters )
+void l1menu::TriggerRatePlot::initiate( const l1menu::ITriggerDescription& trigger, const std::vector<std::string>& scaledParameters )
 {
 	// Before making any histograms make sure errors are done properly
 	TH1::SetDefaultSumw2();
@@ -285,7 +285,7 @@ void l1menu::TriggerRatePlot::addEvent( const l1menu::IEvent& event, const std::
 
 }
 
-const l1menu::ITrigger& l1menu::TriggerRatePlot::getTrigger() const
+const l1menu::ITriggerDescription& l1menu::TriggerRatePlot::getTrigger() const
 {
 	return *pTrigger_;
 }
@@ -310,7 +310,7 @@ std::vector<std::pair<std::string,float> > l1menu::TriggerRatePlot::otherScaledP
 	return returnValue;
 }
 
-bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITrigger& trigger, bool matchTriggerVersion ) const
+bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITriggerDescription& trigger, bool matchTriggerVersion ) const
 {
 	if( trigger.name()!=pTrigger_->name() ) return false;
 	if( matchTriggerVersion && trigger.version()!=pTrigger_->version() ) return false;
@@ -338,7 +338,7 @@ bool l1menu::TriggerRatePlot::triggerMatches( const l1menu::ITrigger& trigger, b
 		float parameterScaling=trigger.parameter(*iScaledParameterName)/mainThreshold;
 		// Make sure they're equal. Float equality is a bit dodgy so I'll just check the
 		// difference is less than an arbitrarily small amount.
-		if( std::fabs(parameterScaling-thisTriggerParameterScaling) > std::pow( 10, -5 ) ) return false;
+		if( std::fabs(parameterScaling-thisTriggerParameterScaling) > std::pow( 10, -4 ) ) return false;
 
 		++iScaledParameterName;
 	}
@@ -389,6 +389,7 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 	std::pair<float,float> slopeAndIntercept=l1menu::tools::simpleLinearFit( dataPoints );
 	float slope=slopeAndIntercept.first;
 	float intercept=slopeAndIntercept.second;
+
 
 	if( std::fabs(slope)<std::pow(10,-4) ) // see if the slope==0 within a little tolerance
 	{

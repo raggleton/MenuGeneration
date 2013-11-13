@@ -44,7 +44,7 @@ namespace l1menu
 		virtual float eventRate() const;
 		virtual void setEventRate( float rate );
 		virtual float sumOfWeights() const;
-		virtual std::unique_ptr<const l1menu::IMenuRate> rate( const l1menu::TriggerMenu& menu ) const;
+		virtual std::shared_ptr<const l1menu::IMenuRate> rate( const l1menu::TriggerMenu& menu ) const;
 	private:
 		class FullSamplePrivateMembers* pImple_;
 	}; // end of class FullSample

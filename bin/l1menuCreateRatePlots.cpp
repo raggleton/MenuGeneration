@@ -6,7 +6,8 @@
 #include "l1menu/MenuRatePlots.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
+#include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/CommandLineParser.h"
 
 void printUsage( const std::string& executableName, std::ostream& output=std::cout )
@@ -75,11 +76,10 @@ int main( int argc, char* argv[] )
 		std::unique_ptr<l1menu::ISample> pSample=l1menu::tools::loadSample( sampleFilename );
 		pSample->setEventRate( orbitsPerSecond*numberOfBunches*scaleToKiloHz );
 
-		l1menu::TriggerMenu menu;
 		std::cout << "Loading menu from file " << menuFilename << std::endl;
-		menu.loadMenuFromFile( menuFilename );
+		std::unique_ptr<l1menu::TriggerMenu> pMenu=l1menu::tools::loadMenu( menuFilename );
 
-		l1menu::MenuRatePlots rateVersusThresholdPlots( menu );
+		l1menu::MenuRatePlots rateVersusThresholdPlots( *pMenu );
 
 		// Use a smart pointer with a custom deleter that will close the file properly.
 		std::unique_ptr<TFile,std::function<void(TFile*)>> pMyRootFile( new TFile( outputFilename.c_str(), "RECREATE" ),

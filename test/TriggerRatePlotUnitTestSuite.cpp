@@ -23,7 +23,7 @@ class TriggerRatePlotUnitTestSuite : public CPPUNIT_NS::TestFixture
 protected:
 	std::ostream* pVerboseOutput_;
 	std::unique_ptr<l1menu::ISample> pSample_;
-	l1menu::TriggerMenu triggerMenu_;
+	std::unique_ptr<l1menu::TriggerMenu> pTriggerMenu_;
 	std::string inputSampleFilename_;
 	std::string inputMenuFilename_;
 public:
@@ -46,12 +46,13 @@ protected:
 #include "l1menu/TriggerTable.h"
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerRatePlot.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
+#include "l1menu/tools/fileIO.h"
 #include "TestParameters.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TriggerRatePlotUnitTestSuite);
 
-TriggerRatePlotUnitTestSuite::TriggerRatePlotUnitTestSuite()
+TriggerRatePlotUnitTestSuite::TriggerRatePlotUnitTestSuite() : pTriggerMenu_( new l1menu::TriggerMenu )
 {
 	pVerboseOutput_=nullptr;
 	//pVerboseOutput_=&std::cout;
@@ -69,8 +70,8 @@ void TriggerRatePlotUnitTestSuite::setUp()
 	CPPUNIT_ASSERT_NO_THROW( pSample_=l1menu::tools::loadSample( inputSampleFilename_ ) );
 
 	if( pVerboseOutput_!=nullptr ) *pVerboseOutput_ << "Loading menu from file " << inputMenuFilename_ << std::endl;
-	CPPUNIT_ASSERT_NO_THROW( triggerMenu_.loadMenuFromFile( inputMenuFilename_ ) );
-	CPPUNIT_ASSERT_MESSAGE( "TriggerMenu supplied needs at least one trigger for the tests", triggerMenu_.numberOfTriggers()>=1 );
+	CPPUNIT_ASSERT_NO_THROW( pTriggerMenu_=l1menu::tools::loadMenu( inputMenuFilename_ ) );
+	CPPUNIT_ASSERT_MESSAGE( "TriggerMenu supplied needs at least one trigger for the tests", pTriggerMenu_->numberOfTriggers()>=1 );
 }
 
 void TriggerRatePlotUnitTestSuite::testConstructingFromTH1()
@@ -82,7 +83,7 @@ void TriggerRatePlotUnitTestSuite::testConstructingFromTH1()
 	// test creating a different one from its TH1 histogram. I'll take the first
 	// trigger from the menu.
 	//
-	l1menu::ITrigger& trigger=triggerMenu_.getTrigger(1);
+	l1menu::ITrigger& trigger=pTriggerMenu_->getTrigger(1);
 	std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames( trigger );
 	CPPUNIT_ASSERT( !thresholdNames.empty() );
 	std::string& mainThreshold=thresholdNames.front();
@@ -130,8 +131,8 @@ void TriggerRatePlotUnitTestSuite::testConstructingFromTH1()
 	}
 
 	// Now compare the triggers
-	const l1menu::ITrigger& expectedTrigger=ratePlot.getTrigger();
-	const l1menu::ITrigger& actualTrigger=duplicateRatePlot.getTrigger();
+	const l1menu::ITriggerDescription& expectedTrigger=ratePlot.getTrigger();
+	const l1menu::ITriggerDescription& actualTrigger=duplicateRatePlot.getTrigger();
 	CPPUNIT_ASSERT_EQUAL( expectedTrigger.name(), actualTrigger.name() );
 	CPPUNIT_ASSERT_EQUAL( expectedTrigger.version(), actualTrigger.version() );
 

@@ -2,7 +2,7 @@
 #define l1menu_tools_tools_h
 
 /** @file
- * Miscellaneous functions that are useful.
+ * Miscellaneous functions that don't fit into another category.
  */
 
 #include <vector>
@@ -17,10 +17,8 @@
 namespace l1menu
 {
 	class ITrigger;
+	class ITriggerDescription;
 	class L1TriggerDPGEvent;
-	class IMenuRate;
-	class ISample;
-	class TriggerMenu;
 }
 
 
@@ -41,7 +39,7 @@ namespace l1menu
 		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 		 * @date 28/May/2013
 		 */
-		std::vector<std::string> getThresholdNames( const l1menu::ITrigger& trigger );
+		std::vector<std::string> getThresholdNames( const l1menu::ITriggerDescription& trigger );
 
 		/** @brief Finds all of the parameter names that don't refer to thresholds.
 		 *
@@ -55,7 +53,7 @@ namespace l1menu
 		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 		 * @date 30/May/2013
 		 */
-		std::vector<std::string> getNonThresholdParameterNames( const l1menu::ITrigger& trigger );
+		std::vector<std::string> getNonThresholdParameterNames( const l1menu::ITriggerDescription& trigger );
 
 		/** @brief Sets all of the thresholds in the supplied trigger as tight as possible but still passing the supplied event.
 		 *
@@ -74,23 +72,6 @@ namespace l1menu
 		 * @date 28/May/2013
 		 */
 		void setTriggerThresholdsAsTightAsPossible( const l1menu::L1TriggerDPGEvent& event, l1menu::ITrigger& trigger, float tolerance=0.01 );
-
-		/** @brief Prints out the trigger rates in the same format as the old L1Menu2015 to the given ostream
-		 *
-		 * @param[out] output       The stream to dump the information to.
-		 * @param[in]  menuRates    The object containing the information to be dumped.
-		 *
-		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
-		 * @date 05/Jul/2013
-		 */
-		void dumpTriggerRates( std::ostream& output, const l1menu::IMenuRate& menuRates );
-
-		/** @brief Prints out the trigger menu in the same format as the old L1Menu2015 to the given ostream
-		 *
-		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
-		 * @date 28/Aug/2013
-		 */
-		void dumpTriggerMenu( std::ostream& output, const l1menu::TriggerMenu& menu  );
 
 		/** @brief Gives the eta bounds of the requested calorimeter region.
 		 *
@@ -125,20 +106,6 @@ namespace l1menu
 		 * @date 28/Aug/2013
 		 */
 		void setBinningToL1Menu2015Values();
-
-		/** @brief Examines the file and creates the appropriate concrete implementation of ISample for it.
-		 *
-		 * Currently only works for ReducedSample, which makes this function a bit pointless. I'll add
-		 * support for FullSample soon.
-		 *
-		 * @param[in]  filename     The filename of the file to open. If the file doesn't exist a std::runtime_error
-		 *                          is thrown.
-		 * @return                  A pointer to the ISample created.
-		 *
-		 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
-		 * @date 07/Jul/2013
-		 */
-		std::unique_ptr<l1menu::ISample> loadSample( const std::string& filename );
 
 		/** @brief Takes a number of (x,y) points and calculates the line of best fit.
 		 *

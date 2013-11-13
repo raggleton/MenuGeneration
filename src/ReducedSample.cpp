@@ -15,7 +15,7 @@
 #include "l1menu/IEvent.h"
 #include "l1menu/IMenuRate.h"
 #include "l1menu/ITriggerRate.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
 #include "./implementation/MenuRateImplementation.h"
 #include "protobuf/l1menu.pb.h"
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -529,8 +529,8 @@ float l1menu::ReducedSample::sumOfWeights() const
 	return pImple_->sumOfWeights;
 }
 
-std::unique_ptr<const l1menu::IMenuRate> l1menu::ReducedSample::rate( const l1menu::TriggerMenu& menu ) const
+std::shared_ptr<const l1menu::IMenuRate> l1menu::ReducedSample::rate( const l1menu::TriggerMenu& menu ) const
 {
 	// TODO make sure the TriggerMenu is valid for this sample
-	return std::unique_ptr<const l1menu::IMenuRate>( new l1menu::implementation::MenuRateImplementation( menu, *this ) );
+	return std::shared_ptr<const l1menu::IMenuRate>( new l1menu::implementation::MenuRateImplementation( menu, *this ) );
 }

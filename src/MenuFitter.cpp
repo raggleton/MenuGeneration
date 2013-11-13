@@ -15,7 +15,8 @@
 #include "l1menu/ITrigger.h"
 #include "l1menu/TriggerRatePlot.h"
 #include "l1menu/MenuRatePlots.h"
-#include "l1menu/tools/tools.h"
+#include "l1menu/tools/miscellaneous.h"
+#include "l1menu/tools/fileIO.h"
 #include "l1menu/tools/stringManipulation.h"
 
 namespace // Use the unnamed namespace for things only used here
@@ -87,8 +88,23 @@ const l1menu::TriggerMenu& l1menu::MenuFitter::menu() const
 	return pImple_->menu;
 }
 
+const l1menu::TriggerRatePlot& l1menu::MenuFitter::triggerRatePlot( size_t triggerNumber ) const
+{
+	for( const auto& triggerScalingDetails : pImple_->scalableTriggers )
+	{
+		if( triggerScalingDetails.triggerNumber==triggerNumber ) return triggerScalingDetails.ratePlot;
+	}
 
-std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
+	// If control got this far then there is no plot
+	throw std::runtime_error( "l1menu::MenuFitter::triggerRatePlot was asked for a plot for a trigger that doesn't have a plot" );
+}
+
+const l1menu::MenuRatePlots& l1menu::MenuFitter::menuRatePlots() const
+{
+	return *pImple_->pMenuRatePlots;
+}
+
+std::shared_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRate, float tolerance )
 {
 	// Clear the log from whatever might be there from previous fits
 	pImple_->debugLog.str("");
@@ -122,7 +138,7 @@ std::unique_ptr<const l1menu::IMenuRate> l1menu::MenuFitter::fit( float totalRat
 	}
 
 	// Then work out what the total rate is
-	std::unique_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
+	std::shared_ptr<const l1menu::IMenuRate> pMenuRate=pImple_->sample.rate( pImple_->menu );
 	l1menu::tools::dumpTriggerRates( pImple_->debugLog, *pMenuRate );
 
 	size_t iterationNumber=0;

@@ -2,6 +2,7 @@
 #define l1menu_IMenuRate_h
 
 #include <vector>
+#include <memory>
 
 //
 // Forward declarations
@@ -9,6 +10,10 @@
 namespace l1menu
 {
 	class ITriggerRate;
+	namespace tools
+	{
+		class XMLElement;
+	}
 }
 
 namespace l1menu
@@ -30,6 +35,10 @@ namespace l1menu
 		virtual float totalRateError() const = 0;
 
 		virtual const std::vector<const l1menu::ITriggerRate*>& triggerRates() const = 0;
+
+//		virtual void save( std::ostream& outputStream ) const = 0;
+//		virtual void convertToXML( l1menu::tools::XMLElement& parentElement ) const = 0;
+//		static std::unique_ptr<l1menu::IMenuRate> load( const std::string& filename );
 	};
 
 } // end of namespace l1menu

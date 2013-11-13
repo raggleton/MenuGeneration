@@ -3,6 +3,9 @@
 #include <string>
 #include <utility>
 #include <cmath>
+#include <stdexcept>
+#include <fstream>
+#include <iostream>
 #include "l1menu/ITrigger.h"
 #include "l1menu/ICachedTrigger.h"
 #include "l1menu/ITriggerRate.h"
@@ -10,6 +13,10 @@
 #include "l1menu/ISample.h"
 #include "l1menu/IEvent.h"
 #include "TriggerRateImplementation.h"
+#include "l1menu/tools/XMLFile.h"
+#include "l1menu/tools/XMLElement.h"
+#include "l1menu/tools/fileIO.h"
+
 
 l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::TriggerMenu& menu, const l1menu::ISample& sample )
 {
@@ -23,9 +30,9 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	std::vector<float> weightOfEventsPure( menu.numberOfTriggers() );
 	std::vector<float> weightSquaredOfEventsPure( menu.numberOfTriggers() );
 
-	weightOfEventsPassingAnyTrigger_=0;
-	weightSquaredOfEventsPassingAnyTrigger_=0;
-	weightOfAllEvents_=0;
+	float weightOfEventsPassingAnyTrigger=0;
+	float weightSquaredOfEventsPassingAnyTrigger=0;
+	float weightOfAllEvents=0;
 
 	// Using cached triggers significantly increases speed for ReducedSample
 	// because it cuts out expensive string comparisons when querying the trigger
@@ -42,7 +49,7 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 	{
 		const l1menu::IEvent& event=sample.getEvent(eventNumber);
 		float weight=event.weight();
-		weightOfAllEvents_+=weight;
+		weightOfAllEvents+=weight;
 
 		size_t numberOfTriggersPassed=0;
 
@@ -66,58 +73,141 @@ l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1
 		}
 		if( numberOfTriggersPassed>0 )
 		{
-			weightOfEventsPassingAnyTrigger_+=weight;
-			weightSquaredOfEventsPassingAnyTrigger_+=(weight*weight);
+			weightOfEventsPassingAnyTrigger+=weight;
+			weightSquaredOfEventsPassingAnyTrigger+=(weight*weight);
 		}
 	}
 
-	scaling_=sample.eventRate();
+	float scaling=sample.eventRate();
 
 	for( size_t triggerNumber=0; triggerNumber<cachedTriggers.size(); ++triggerNumber )
 	{
-		triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),weightOfEventsPassed[triggerNumber],weightSquaredOfEventsPassed[triggerNumber],weightOfEventsPure[triggerNumber],weightSquaredOfEventsPure[triggerNumber],*this)) );
+		float fraction=weightOfEventsPassed[triggerNumber]/weightOfAllEvents;
+		float fractionError=std::sqrt(weightSquaredOfEventsPassed[triggerNumber])/weightOfAllEvents;
+		float pureFraction=weightOfEventsPure[triggerNumber]/weightOfAllEvents;
+		float pureFractionError=std::sqrt(weightSquaredOfEventsPure[triggerNumber])/weightOfAllEvents;
+		triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),fraction,fractionError,fraction*scaling,fractionError*scaling,pureFraction,pureFractionError,pureFraction*scaling,pureFractionError*scaling) ) );
+		//triggerRates_.push_back( std::move(TriggerRateImplementation(menu.getTrigger(triggerNumber),weightOfEventsPassed[triggerNumber],weightSquaredOfEventsPassed[triggerNumber],weightOfEventsPure[triggerNumber],weightSquaredOfEventsPure[triggerNumber],*this)) );
 	}
 
+	//
+	// Now I have everything I need to calculate all of the values required by the interface
+	//
+	totalFraction_=weightOfEventsPassingAnyTrigger/weightOfAllEvents;
+	totalFractionError_=std::sqrt(weightSquaredOfEventsPassingAnyTrigger)/weightOfAllEvents;
+	totalRate_=totalFraction_*scaling;
+	totalRateError_=totalFractionError_*scaling;
 }
 
-float l1menu::implementation::MenuRateImplementation::weightOfAllEvents() const
+l1menu::implementation::MenuRateImplementation::MenuRateImplementation( const l1menu::tools::XMLElement& xmlDescription )
 {
-	return weightOfAllEvents_;
+	std::vector<l1menu::tools::XMLElement> parameterElements=xmlDescription.getChildren("totalFraction");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because the element did not have one and only one 'totalFraction' child." );
+	totalFraction_=parameterElements.front().getFloatValue();
+
+	parameterElements=xmlDescription.getChildren("totalFractionError");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because the element did not have one and only one 'totalFractionError' child." );
+	totalFractionError_=parameterElements.front().getFloatValue();
+
+	parameterElements=xmlDescription.getChildren("totalRate");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because the element did not have one and only one 'totalRate' child." );
+	totalRate_=parameterElements.front().getFloatValue();
+
+	parameterElements=xmlDescription.getChildren("totalRateError");
+	if( parameterElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because the element did not have one and only one 'totalRateError' child." );
+	totalRateError_=parameterElements.front().getFloatValue();
+
+	parameterElements=xmlDescription.getChildren("TriggerRate");
+	for( const auto& triggerRateElement : parameterElements )
+	{
+		std::vector<l1menu::tools::XMLElement> triggerElements=triggerRateElement.getChildren("Trigger");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'Trigger' child." );
+		std::unique_ptr<l1menu::ITrigger> pTrigger=l1menu::tools::convertFromXML( triggerElements.front() );
+
+		triggerElements=triggerRateElement.getChildren("fraction");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'fraction' child." );
+		float fraction=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("fractionError");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'fractionError' child." );
+		float fractionError=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("rate");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'rate' child." );
+		float rate=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("rateError");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'rateError' child." );
+		float rateError=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("pureFraction");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'pureFraction' child." );
+		float pureFraction=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("pureFractionError");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'pureFractionError' child." );
+		float pureFractionError=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("pureRate");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'pureRate' child." );
+		float pureRate=triggerElements.front().getFloatValue();
+
+		triggerElements=triggerRateElement.getChildren("pureRateError");
+		if( triggerElements.size()!=1 ) throw std::runtime_error( "Failed to create IMenuRate from XML because one of the TriggerRate elements did not have one and only one 'pureRateError' child." );
+		float pureRateError=triggerElements.front().getFloatValue();
+
+		triggerRates_.push_back( std::move(TriggerRateImplementation(*pTrigger,fraction,fractionError,rate,rateError,pureFraction,pureFractionError,pureRate,pureRateError) ) );
+	}
 }
 
-float l1menu::implementation::MenuRateImplementation::weightOfAllEventsPassingAnyTrigger() const
+void l1menu::implementation::MenuRateImplementation::setTotalFraction( float totalFraction )
 {
-	return weightOfEventsPassingAnyTrigger_;
+	totalFraction_=totalFraction;
 }
 
-float l1menu::implementation::MenuRateImplementation::weightSquaredOfAllEventsPassingAnyTrigger() const
+void l1menu::implementation::MenuRateImplementation::setTotalFractionError( float totalFractionError )
 {
-	return weightSquaredOfEventsPassingAnyTrigger_;
+	totalFractionError_=totalFractionError;
 }
 
-float l1menu::implementation::MenuRateImplementation::scaling() const
+void l1menu::implementation::MenuRateImplementation::setTotalRate( float totalRate )
 {
-	return scaling_;
+	totalRate_=totalRate;
+}
+
+void l1menu::implementation::MenuRateImplementation::setTotalRateError( float totalRateError )
+{
+	totalRateError_=totalRateError;
+}
+
+void l1menu::implementation::MenuRateImplementation::addTriggerRate( l1menu::implementation::TriggerRateImplementation&& triggerRate )
+{
+	triggerRates_.push_back( std::move(triggerRate) );
+}
+
+l1menu::implementation::MenuRateImplementation::MenuRateImplementation()
+{
+	// No operation.
 }
 
 float l1menu::implementation::MenuRateImplementation::totalFraction() const
 {
-	return weightOfEventsPassingAnyTrigger_/weightOfAllEvents_;
+	return totalFraction_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalFractionError() const
 {
-	return std::sqrt(weightSquaredOfEventsPassingAnyTrigger_)/weightOfAllEvents_;
+	return totalFractionError_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalRate() const
 {
-	return totalFraction()*scaling_;
+	return totalRate_;
 }
 
 float l1menu::implementation::MenuRateImplementation::totalRateError() const
 {
-	return totalFractionError()*scaling_;
+	return totalRateError_;
 }
 
 const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRateImplementation::triggerRates() const
@@ -125,14 +215,14 @@ const std::vector<const l1menu::ITriggerRate*>& l1menu::implementation::MenuRate
 	// If the sizes are the same I'll assume nothing has changed and the references
 	// are still valid. I don't expect this method to be called until the triggerRates_
 	// vector is complete anyway.
-	if( triggerRates_.size()!=baseClassReferences_.size() )
+	if( triggerRates_.size()!=baseClassPointers_.size() )
 	{
-		baseClassReferences_.clear();
+		baseClassPointers_.clear();
 		for( const auto& triggerRate : triggerRates_ )
 		{
-			baseClassReferences_.push_back( &triggerRate );
+			baseClassPointers_.push_back( &triggerRate );
 		}
 	}
 
-	return baseClassReferences_;
+	return baseClassPointers_;
 }

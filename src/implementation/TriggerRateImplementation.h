@@ -30,13 +30,13 @@ namespace l1menu
 		class TriggerRateImplementation : public l1menu::ITriggerRate
 		{
 		public:
-			TriggerRateImplementation( const l1menu::ITrigger& trigger, float weightOfEventsPassingThisTrigger, float weightSquaredOfEventsPassingThisTrigger, float weightOfEventsOnlyPassingThisTrigger, float weightSquaredOfEventsOnlyPassingThisTrigger, const MenuRateImplementation& menuRate );
-			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move constructor
-			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; // Move assignment
+			TriggerRateImplementation( const l1menu::ITrigger& trigger, float fraction, float fractionError, float rate, float rateError, float pureFraction, float pureFractionError, float pureRate, float pureRateError );
+			TriggerRateImplementation( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move constructor. One not implicitly generated because I have a custom destructor.
+			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move assignment. One not implicitly generated because I have a custom destructor.
 			virtual ~TriggerRateImplementation();
 
 			// Methods required by the l1menu::ITriggerRate interface
-			virtual const l1menu::ITrigger& trigger() const;
+			virtual const l1menu::ITriggerDescription& trigger() const;
 			virtual float fraction() const;
 			virtual float fractionError() const;
 			virtual float rate() const;
@@ -47,11 +47,14 @@ namespace l1menu
 			virtual float pureRateError() const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
-			float weightOfEventsPassingThisTrigger_;
-			float weightSquaredOfEventsPassingThisTrigger_;
-			float weightOfEventsOnlyPassingThisTrigger_;
-			float weightSquaredOfEventsOnlyPassingThisTrigger_;
-			const MenuRateImplementation& menuRate_;
+			float fraction_;
+			float fractionError_;
+			float rate_;
+			float rateError_;
+			float pureFraction_;
+			float pureFractionError_;
+			float pureRate_;
+			float pureRateError_;
 		};
 
 

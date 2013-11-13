@@ -19,6 +19,15 @@ float l1menu::tools::convertStringToFloat( const std::string& string )
 	return returnValue;
 }
 
+int l1menu::tools::convertStringToInt( const std::string& string )
+{
+	int returnValue;
+	std::stringstream stringConverter( string );
+	stringConverter >> returnValue;
+	if( stringConverter.fail() || !stringConverter.eof() ) throw std::runtime_error( "Unable to convert \""+string+"\" to an int" );
+	return returnValue;
+}
+
 std::vector<std::string> l1menu::tools::splitByWhitespace( const std::string& stringToSplit )
 {
 	std::vector<std::string> returnValue;

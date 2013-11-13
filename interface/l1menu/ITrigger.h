@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "l1menu/ITriggerDescription.h"
 
 // Forward declarations
 namespace l1menu
@@ -46,17 +47,23 @@ namespace l1menu
 	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 	 * @date sometime around June 2013
 	 */
-	class ITrigger
+	class ITrigger : public l1menu::ITriggerDescription
 	{
 	public:
 		virtual ~ITrigger() {}
+		virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const = 0;
+		virtual bool thresholdsAreCorrelated() const = 0;
+		/** @brief A version of the method from ITriggerEvent that allows the parameter to be changed. */
+		virtual float& parameter( const std::string& parameterName ) = 0;
+
+		//
+		// These are the methods from ITriggerDescription that any subclass
+		// needs to implement.
+		//
 		virtual const std::string name() const = 0;
 		virtual unsigned int version() const = 0;
 		virtual const std::vector<std::string> parameterNames() const = 0;
-		virtual float& parameter( const std::string& parameterName ) = 0;
 		virtual const float& parameter( const std::string& parameterName ) const = 0;
-		virtual bool apply( const l1menu::L1TriggerDPGEvent& event ) const = 0;
-		virtual bool thresholdsAreCorrelated() const = 0;
 	};
 
 } // end of namespace l1menu
