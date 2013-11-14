@@ -382,7 +382,7 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 		// Make sure all of of the bin numbers are valid
 		if( number<1 ) number=1;
 		else if( number>pHistogram_->GetNbinsX() ) number=pHistogram_->GetNbinsX();
-		dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(number), pHistogram_->GetBinContent(number) ));
+		dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(number), pHistogram_->GetBinContent(number) ) );
 	}
 
 	// Now do a simple linear fit on the data points
@@ -391,7 +391,8 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 	float intercept=slopeAndIntercept.second;
 
 
-	if( std::fabs(slope)<std::pow(10,-4) ) // see if the slope==0 within a little tolerance
+	const float zeroEqualityWithTolerance=std::pow(10,-4);
+	if( std::fabs(slope)<zeroEqualityWithTolerance ) // see if the slope==0 within a little tolerance
 	{
 		// Some of the triggers, e.g. muons, can only have the threshold set in discrete steps. So the rate plot
 		// comes out looking as though it has steps in it. All of the bins for the linear fit could be on the same
@@ -404,6 +405,23 @@ float l1menu::TriggerRatePlot::findThreshold( float targetRate ) const
 	else
 	{
 		float newThreshold=(targetRate-intercept)/slope;
+		// Apply some sanity checks. If the bin for this new threshold is more than an arbitrary
+		// number away from the two straddling the required threshold (i.e. binNumber-1 and binNumber)
+		// then redo the fit with just those two bins in it, so that the result is guaranteed to be between
+		// the two. This can happen at points of inflection. Also need to make sure the newThreshold is
+		// on the histogram.
+		int newThresholdBin=pHistogram_->FindBin(newThreshold);
+		// Make sure it's not the under or overflow bin, and that it's arbitrarily close to the original bin.
+		if( std::abs(binNumber-newThresholdBin)>4 || newThresholdBin==0 || newThresholdBin==pHistogram_->GetNbinsX()+1 )
+		{
+			dataPoints.clear();
+			dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(binNumber-1), pHistogram_->GetBinContent(binNumber-1) ) );
+			dataPoints.push_back( std::make_pair( pHistogram_->GetBinLowEdge(binNumber), pHistogram_->GetBinContent(binNumber) ) );
+			slopeAndIntercept=l1menu::tools::simpleLinearFit( dataPoints );
+			// Need to check that the slope isn't zero (to within a little tolerance)
+			if( std::fabs(slope)<zeroEqualityWithTolerance ) return pHistogram_->GetBinLowEdge(binNumber-1);
+			else return (targetRate-slopeAndIntercept.second)/slopeAndIntercept.first;
+		}
 		if( newThreshold<0 ) return 0; // Apply some sanity checks
 		// Do I want to extrapolate out past where the histogram goes? Not sure. I won't for the time being.
 		else if( newThreshold>pHistogram_->GetXaxis()->GetXmax() ) return pHistogram_->GetXaxis()->GetXmax();
