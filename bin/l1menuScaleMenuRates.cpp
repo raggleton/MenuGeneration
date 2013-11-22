@@ -8,6 +8,7 @@
 #include "l1menu/IMenuRate.h"
 #include "l1menu/TriggerMenu.h"
 #include "l1menu/MenuRatePlots.h"
+#include "l1menu/IL1MenuFile.h"
 #include "l1menu/scalings/MCDataScaling.h"
 #include "l1menu/scalings/MuonScaling.h"
 #include "l1menu/scalings/OnlineToOfflineScaling.h"
@@ -43,7 +44,7 @@ int main( int argc, char* argv[] )
 	std::string offlineScalingFilename; // The filename of the file used to scale thresholds from online to offline.
 	std::vector< std::unique_ptr<l1menu::IScaling> > scalingsToApply; // List of all the scalings that should be applied
 	std::string unscaledRatesFilename;
-	l1menu::tools::FileFormat fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
+	l1menu::IL1MenuFile::FileFormat fileFormat=l1menu::IL1MenuFile::FileFormat::XML;
 
 
 	l1menu::tools::CommandLineParser commandLineParser;
@@ -68,9 +69,9 @@ int main( int argc, char* argv[] )
 		if( commandLineParser.optionHasBeenSet( "format" ) )
 		{
 			std::string formatString=commandLineParser.optionArguments("format").back();
-			if( formatString=="XML" ) fileFormat=l1menu::tools::FileFormat::XMLFORMAT;
-			else if( formatString=="OLD" ) fileFormat=l1menu::tools::FileFormat::OLDFORMAT;
-			else if( formatString=="CSV" ) fileFormat=l1menu::tools::FileFormat::CSVFORMAT;
+			if( formatString=="XML" ) fileFormat=l1menu::IL1MenuFile::FileFormat::XML;
+			else if( formatString=="OLD" ) fileFormat=l1menu::IL1MenuFile::FileFormat::OLD;
+			else if( formatString=="CSV" ) fileFormat=l1menu::IL1MenuFile::FileFormat::CSV;
 			else throw std::runtime_error( "format must be one of 'XML', 'OLD', or 'CSV'" );
 		}
 		if( commandLineParser.optionHasBeenSet("rateplots") ) unscaledRatesFilename=commandLineParser.optionArguments("rateplots").back();
@@ -135,27 +136,30 @@ int main( int argc, char* argv[] )
 		}
 
 
+		std::unique_ptr<l1menu::IL1MenuFile> pOutputFile=l1menu::IL1MenuFile::getOutputFile( fileFormat, std::cout );
+
 		for( const auto& menuRateFilename : menuRates )
 		{
 			try
 			{
-				std::cout << "Loading menu rate from file " << menuRateFilename << std::endl;
-				std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::tools::loadRate( menuRateFilename );
+				std::cout << "Loading menu rates from file " << menuRateFilename << std::endl;
+				std::unique_ptr<l1menu::IL1MenuFile> pInputFile=l1menu::IL1MenuFile::getInputFile( l1menu::IL1MenuFile::FileFormat::XML, menuRateFilename );
+				std::vector< std::unique_ptr<l1menu::IMenuRate> > menuRates=pInputFile->getRates();
 
-				std::cout << "Scaling " << menuRateFilename << " with..." << std::endl;
-				for( const auto& pScaling : scalingsToApply )
+
+				for( auto& pMenuRate : menuRates )
 				{
-					std::cout << "   " << pScaling->briefDescription() << std::endl;
-					// Replace the current menu with the newly scaled one, and repeat until all scaling has been done.
-					pMenuRate=pScaling->scale( *pMenuRate );
+					std::cout << "Scaling rate from file " << menuRateFilename << " with..." << std::endl;
+					for( const auto& pScaling : scalingsToApply )
+					{
+						std::cout << "   " << pScaling->briefDescription() << std::endl;
+						// Replace the current menu with the newly scaled one, and repeat until all scaling has been done.
+						pMenuRate=pScaling->scale( *pMenuRate );
+					}
+
+
+					pOutputFile->add( *pMenuRate );
 				}
-
-
-				//std::unique_ptr<l1menu::IMenuRate> pMenuRate=l1menu::IMenuRate::load( menuRateFilename );
-				//menuRateFile.outputToStream( std::cout );
-				l1menu::tools::dumpTriggerRates( std::cout, *pMenuRate, fileFormat );
-
-				std::cout << std::endl;
 			}
 			catch( std::exception& error )
 			{

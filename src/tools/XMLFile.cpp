@@ -169,17 +169,37 @@ l1menu::tools::XMLFile::XMLFile() : pImple( new l1menu::tools::XMLFilePrivateMem
 
 l1menu::tools::XMLFile::XMLFile( const std::string& filename ) : pImple( new l1menu::tools::XMLFilePrivateMembers )
 {
+	parseFromFile( filename );
+}
+
+l1menu::tools::XMLFile::~XMLFile()
+{
+
+}
+
+void l1menu::tools::XMLFile::parseFromFile( const std::string& filename )
+{
 	pImple->parser_.parse( filename.c_str() );
 	// Copy a raw pointer to the document so that I have a consistent way of referring to it
 	// even when the parser wasn't used (i.e. when creating a document in memory).
 	pImple->pDocument_=pImple->parser_.getDocument();
 
-	if( pImple->pDocument_==nullptr ) throw std::runtime_error( "Couldn't open the file "+filename );
-	if( pImple->pDocument_->getDocumentElement()==nullptr ) throw std::runtime_error( filename+" doesn't appear to be an xml file" );
-}
+	if( pImple->pDocument_==nullptr )
+	{
+		// I want to throw an exception to say the file couldn't be opened. However, I want to have the
+		// file in a valid state so that it's possible to catch the exception and carry on anyway. So
+		// I'll do the steps I'd normally do if no filename was supplied and only then throw the exception.
+		pImple->pOwnedDocument_.reset( pImple->pDomImplementation_->createDocument( nullptr, XercesString("l1menu").get(), nullptr ) );
+		pImple->pDocument_=pImple->pOwnedDocument_.get();
+		xercesc::DOMElement* pDescriptionElement=pImple->pDocument_->createElement( XercesString( "description" ).get() );
+		pImple->pDocument_->getDocumentElement()->appendChild( pDescriptionElement );
+		xercesc::DOMText* pDescriptionValue=pImple->pDocument_->createTextNode( XercesString( "File for use with the L1Trigger/MenuGeneration CMSSW package" ).get() );
+		pDescriptionElement->appendChild( pDescriptionValue );
 
-l1menu::tools::XMLFile::~XMLFile()
-{
+		throw std::runtime_error( "Couldn't open the file "+filename );
+	}
+	else if( pImple->pDocument_->getDocumentElement()==nullptr ) throw std::runtime_error( filename+" doesn't appear to be an xml file" );
+
 
 }
 

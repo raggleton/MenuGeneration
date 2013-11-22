@@ -38,6 +38,8 @@ namespace l1menu
 
 			virtual ~XMLFile();
 
+			void parseFromFile( const std::string& filename );
+
 			l1menu::tools::XMLElement rootElement();
 
 			void outputToStream( std::ostream& outputStream );
