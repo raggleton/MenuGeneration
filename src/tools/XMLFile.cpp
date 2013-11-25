@@ -95,17 +95,7 @@ namespace l1menu
 		class XMLFilePrivateMembers
 		{
 		public:
-			XMLFilePrivateMembers()
-				// Set up the smart pointer so that it will use the xerces method to release the object (if it exists).
-				// Don't actually call "delete" because it causes a crash.
-				: pOwnedDocument_(nullptr,[](xercesc::DOMDocument* p){if(p!=nullptr){p->release();}})
-			{
-				//using l1menu::tools::XMLFile::XercesString;
-
-				pDomImplementation_=xercesc::DOMImplementationRegistry::getDOMImplementation( ::XercesString("Core LS").get() );
-				if( pDomImplementation_==nullptr ) throw std::runtime_error( "Couldn't create the DOMImplementation" );
-				pDomImplementationLS_=static_cast<xercesc::DOMImplementationLS*>( pDomImplementation_ );
-			}
+			XMLFilePrivateMembers();
 			xercesc::DOMImplementation* pDomImplementation_;
 			xercesc::DOMImplementationLS* pDomImplementationLS_;
 			xercesc::DOMDocument* pDocument_; ///< @brief Always points to the DOMDocument no matter who owns it.
@@ -117,6 +107,16 @@ namespace l1menu
 			 * document no matter who owns it. */
 			std::unique_ptr<xercesc::DOMDocument,void(*)(xercesc::DOMDocument* p)> pOwnedDocument_;
 		};
+
+		XMLFilePrivateMembers::XMLFilePrivateMembers()
+			// Set up the smart pointer so that it will use the xerces method to release the object (if it exists).
+			// Don't actually call "delete" because it causes a crash.
+			: pOwnedDocument_(nullptr,[](xercesc::DOMDocument* p){if(p!=nullptr){p->release();}})
+		{
+			pDomImplementation_=xercesc::DOMImplementationRegistry::getDOMImplementation( ::XercesString("Core LS").get() );
+			if( pDomImplementation_==nullptr ) throw std::runtime_error( "Couldn't create the DOMImplementation" );
+			pDomImplementationLS_=static_cast<xercesc::DOMImplementationLS*>( pDomImplementation_ );
+		}
 
 	} // end of namespace tools
 } // end of namespace l1menu
