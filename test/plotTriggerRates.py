@@ -26,6 +26,7 @@ class TriggerRate(object):
 		# Create a legend. This might not actually be plotted if drawLegend is changed to False
 		self.legend=TLegend( 0.59, 0.72*0.9, 0.99, 0.95*0.9 )
 		self.legend.SetTextSize( 0.04 )
+		self.legend.SetFillColor(0)
 		self.drawLegend=True
 		self.pad=pad
 		#self.pad.cd()
