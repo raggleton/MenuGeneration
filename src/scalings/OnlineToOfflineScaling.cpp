@@ -161,6 +161,7 @@ std::unique_ptr<l1menu::IMenuRate> l1menu::scalings::OnlineToOfflineScaling::sca
 		// Modify the trigger thresholds as required.
 		//
 		const auto& iFindResult=pImple->triggerScalings_.find( trigger.name() );
+		std::map< std::string, std::pair<float,float> > scaledThresholdErrors; // Store threshold errors here until I can set them
 		if( iFindResult!=pImple->triggerScalings_.end() ) // If there is no scaling provided just pass it on unchanged
 		{
 			// This vector will have four entries, regardless of whether the trigger has four thresholds.
@@ -173,19 +174,40 @@ std::unique_ptr<l1menu::IMenuRate> l1menu::scalings::OnlineToOfflineScaling::sca
 				float unscaledThreshold=pScaledTrigger->parameter( thresholdNames[index] );
 				float slope=scalings[index].first;
 				float offset=scalings[index].second;
-				pScaledTrigger->parameter( thresholdNames[index] )=unscaledThreshold*slope+offset;
+				float scaledThreshold=unscaledThreshold*slope+offset;
+				pScaledTrigger->parameter( thresholdNames[index] )=scaledThreshold;
+				// Look to see if unscaled TriggerRate has any errors on the thresholds.
+				// If it does, scale those too.
+				if( pUnscaledTriggerRate->parameterErrorsAreAvailable( thresholdNames[index] ) )
+				{
+					// I need to get the absolute values of these errors, not the difference to the threshold
+					float unscaledLowEdge=unscaledThreshold-pUnscaledTriggerRate->parameterErrorLow( thresholdNames[index] );
+					float unscaledHighEdge=unscaledThreshold+pUnscaledTriggerRate->parameterErrorHigh( thresholdNames[index] );
+					// Then scale, and also convert back to the difference to the scaled threshold
+					float scaledErrorLow=scaledThreshold-(unscaledLowEdge*slope+offset);
+					float scaledErrorHigh=(unscaledHighEdge*slope+offset)-scaledThreshold;
+					scaledThresholdErrors[thresholdNames[index]]=std::make_pair(scaledErrorLow,scaledErrorHigh);
+				}
 			}
 		}
 
 
-		// Now I can add the TriggerRate to the MenuRate. It it was a muon trigger the thresholds will have been
-		// scaled, if it wasn't then it will be exactly the same. I can always copy the rates straight over because
+		// Now I can add the TriggerRate to the MenuRate. I can always copy the rates straight over because
 		// it's the thresholds that are scaled.
 		l1menu::implementation::TriggerRateImplementation scaledTriggerRate( *pScaledTrigger,
 				pUnscaledTriggerRate->fraction(), pUnscaledTriggerRate->fractionError(),
 				pUnscaledTriggerRate->rate(), pUnscaledTriggerRate->rateError(),
 				pUnscaledTriggerRate->pureFraction(), pUnscaledTriggerRate->pureFractionError(),
 				pUnscaledTriggerRate->pureRate(), pUnscaledTriggerRate->pureRateError() );
+		// Now that I have created the TriggerRate I can set the errors on the thresholds that I
+		// scaled earlier.
+		for( const auto& nameErrorsPair : scaledThresholdErrors )
+		{
+			// TODO - Propagate errors for the scaling.
+			//        This just scales the errors previously calculated.
+			scaledTriggerRate.setParameterErrors( nameErrorsPair.first, nameErrorsPair.second.first, nameErrorsPair.second.second );
+		}
+		// Everything has been set so now I can add it to the MenuRate
 		pMenuRate->addTriggerRate( std::move(scaledTriggerRate) );
 
 	} // end of loop over unscaled TriggerRates

@@ -2,6 +2,7 @@
 #define l1menu_ITriggerRate_h
 
 #include <vector>
+#include <string>
 
 //
 // Forward declarations
@@ -32,6 +33,12 @@ namespace l1menu
 		 * have no affect on the other.
 		 */
 		virtual const l1menu::ITriggerDescription& trigger() const = 0;
+		//
+		// Add some methods so that I can get threshold errors
+		//
+		virtual bool parameterErrorsAreAvailable( const std::string& parameterName ) const = 0;
+		virtual const float& parameterErrorLow( const std::string& parameterName ) const = 0;
+		virtual const float& parameterErrorHigh( const std::string& parameterName ) const = 0;
 
 		/** @brief The fraction of events that this trigger passed, so before applying any scaling. */
 		virtual float fraction() const = 0;

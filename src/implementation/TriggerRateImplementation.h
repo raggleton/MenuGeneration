@@ -4,6 +4,7 @@
 #include "l1menu/ITriggerRate.h"
 #include <vector>
 #include <memory>
+#include <map>
 
 //
 // Forward declarations
@@ -35,8 +36,15 @@ namespace l1menu
 			TriggerRateImplementation& operator=( TriggerRateImplementation&& otherTriggerRate ) noexcept; ///< Move assignment. One not implicitly generated because I have a custom destructor.
 			virtual ~TriggerRateImplementation();
 
+			// Method to set parameter errors.
+			void setParameterErrors( const std::string& parameterName, float errorLow, float errorHigh );
+
+
 			// Methods required by the l1menu::ITriggerRate interface
 			virtual const l1menu::ITriggerDescription& trigger() const;
+			virtual bool parameterErrorsAreAvailable( const std::string& parameterName ) const;
+			virtual const float& parameterErrorLow( const std::string& parameterName ) const;
+			virtual const float& parameterErrorHigh( const std::string& parameterName ) const;
 			virtual float fraction() const;
 			virtual float fractionError() const;
 			virtual float rate() const;
@@ -47,6 +55,8 @@ namespace l1menu
 			virtual float pureRateError() const;
 		protected:
 			std::unique_ptr<l1menu::ITrigger> pTrigger_;
+			std::map<std::string,float> parameterErrorsHigh_;
+			std::map<std::string,float> parameterErrorsLow_;
 			float fraction_;
 			float fractionError_;
 			float rate_;
