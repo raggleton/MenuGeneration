@@ -7,6 +7,7 @@
 
 #include "l1menu/ReducedEvent.h"
 #include "l1menu/ISample.h"
+#include "l1menu/L1TriggerDPGEvent.h"
 
 // Forward declarations
 namespace l1menu
@@ -34,6 +35,9 @@ namespace l1menu
 		virtual ~ReducedSample();
 
 		void addSample( const l1menu::FullSample& originalSample );
+
+		// To add in an event
+		void addEvent( l1menu::L1TriggerDPGEvent& event );
 
 		/** @brief Save to a file in protobuf format (protobuf in src/protobuf/l1menu.proto). */
 		void saveToFile( const std::string& filename ) const;

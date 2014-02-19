@@ -4,6 +4,23 @@
 #include <memory>
 #include "l1menu/IEvent.h"
 
+
+
+// data formats
+#include "DataFormats/L1Trigger/interface/L1EmParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1EmParticle.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticle.h"
+#include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
+#include "DataFormats/L1Trigger/interface/L1HFRingsFwd.h"
+#include "DataFormats/L1Trigger/interface/L1HFRings.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
+
+#include "UserCode/L1TriggerDPG/interface/L1AnalysisL1Extra.h"
+
 // Forward declarations
 namespace L1Analysis
 {
@@ -28,6 +45,7 @@ namespace l1menu
 	class L1TriggerDPGEvent : public l1menu::IEvent
 	{
 	public:
+		L1TriggerDPGEvent();
 		L1TriggerDPGEvent( const l1menu::ISample& parentSample );
 		L1TriggerDPGEvent( const L1TriggerDPGEvent& otherEvent );
 		L1TriggerDPGEvent( L1TriggerDPGEvent&& otherEvent ) noexcept;
@@ -40,7 +58,20 @@ namespace l1menu
 		virtual bool* physicsBits(); ///< @brief A 128 element array of the physics bits
 		virtual const bool* physicsBits() const; ///< @brief Const access to the 128 element array of the physics bits.
 
+		// manual setters
+		virtual void setRun( int run );
+		virtual void setLS( int ls );
+		virtual void setEventNum( int eventNum );
 		virtual void setWeight( float weight );
+		virtual void setL1Bits( bool bits[] );
+
+		virtual void setEG( edm::Handle<l1extra::L1EmParticleCollection> nonIsoEm, edm::Handle<l1extra::L1EmParticleCollection> isoEm );		
+		virtual void setJets( edm::Handle<l1extra::L1JetParticleCollection> cenJet, edm::Handle<l1extra::L1JetParticleCollection> fwdJet );
+		virtual void setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet );		
+		virtual void setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets ); // do ET total, |MET|
+		virtual void setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts ); // do HT total, |MHT|
+		// virtual void setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings );
+		virtual void setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon);
 
 		//
 		// These are the methods required by the l1menu::IEvent interface.

@@ -340,6 +340,54 @@ void l1menu::ReducedSample::addSample( const l1menu::FullSample& originalSample 
 	} // end of loop over events
 }
 
+// Additonal method to work event-by-event instead of with the full sample
+void l1menu::ReducedSample::addEvent(  l1menu::L1TriggerDPGEvent& event)
+{
+	l1menuprotobuf::Run* pCurrentRun=pImple_->protobufRuns.back().get();
+	
+	// Split the events up into groups in arbitrary numbers. This is to get around
+	// a protobuf aversion to long messages.
+	if( pCurrentRun->event_size() >= pImple_->EVENTS_PER_RUN )
+	{
+		// Gone over the arbitrary limit, so create a new protobuf Run and start
+		// using that instead.
+		std::unique_ptr<l1menuprotobuf::Run> pNewRun( new l1menuprotobuf::Run );
+		pImple_->protobufRuns.push_back( std::move( pNewRun ) );
+		pCurrentRun=pImple_->protobufRuns.back().get();
+	}
+
+	l1menuprotobuf::Event* pProtobufEvent=pCurrentRun->add_event();
+	if( event.weight()!=1 ) pProtobufEvent->set_weight( event.weight() );
+
+	// Loop over all of the triggers
+	for( size_t triggerNumber=0; triggerNumber<pImple_->triggerMenu.numberOfTriggers(); ++triggerNumber )
+	{
+		std::unique_ptr<l1menu::ITrigger> pTrigger=pImple_->triggerMenu.getTriggerCopy(triggerNumber);
+		std::vector<std::string> thresholdNames=l1menu::tools::getThresholdNames(*pTrigger);
+
+		try
+		{
+			l1menu::tools::setTriggerThresholdsAsTightAsPossible( event, *pTrigger, 0.001 );
+			// Set all of the parameters to match the thresholds in the trigger
+			for( const auto& thresholdName : thresholdNames )
+			{
+				pProtobufEvent->add_threshold( pTrigger->parameter(thresholdName) );
+			}
+		}
+		catch( std::exception& error )
+		{
+			// setTriggerThresholdsAsTightAsPossible() couldn't find thresholds so record
+			// -1 for everything.
+			// Range based for loop gives me a warning because I don't use the thresholdName.
+			for( size_t index=0; index<thresholdNames.size(); ++index ) pProtobufEvent->add_threshold(-1);
+		} // end of try block that sets the trigger thresholds
+
+	} // end of loop over triggers
+
+	pImple_->sumOfWeights+=event.weight();
+}
+
+
 void l1menu::ReducedSample::saveToFile( const std::string& filename ) const
 {
 	// Open the file. Parameters are filename, write ability and create, rw-r--r-- permissions.
