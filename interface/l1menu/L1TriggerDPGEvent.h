@@ -63,7 +63,7 @@ namespace l1menu
 		virtual void setLS( int ls );
 		virtual void setEventNum( int eventNum );
 		virtual void setWeight( float weight );
-		virtual void setL1Bits( bool bits[] );
+		virtual void setL1Bits( bool * bits );
 
 		virtual void setEG( edm::Handle<l1extra::L1EmParticleCollection> nonIsoEm, edm::Handle<l1extra::L1EmParticleCollection> isoEm );		
 		virtual void setJets( edm::Handle<l1extra::L1JetParticleCollection> cenJet, edm::Handle<l1extra::L1JetParticleCollection> fwdJet );

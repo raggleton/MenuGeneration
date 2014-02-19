@@ -96,7 +96,7 @@ void l1menu::L1TriggerDPGEvent::setWeight( float weight )
 	pImple_->weight=weight;
 }
 
-void l1menu::L1TriggerDPGEvent::setL1Bits( bool bits[] )
+void l1menu::L1TriggerDPGEvent::setL1Bits( bool * bits)
 {
 
 	// Passing arrays is always a bit dodgy. Should probably do this better - this assumes 128 bits! 
