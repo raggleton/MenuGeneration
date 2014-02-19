@@ -18,6 +18,7 @@
 #include "DataFormats/L1Trigger/interface/L1HFRingsFwd.h"
 #include "DataFormats/L1Trigger/interface/L1HFRings.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
+#include "DataFormats/L1GlobalMuonTrigger/interface/L1MuGMTReadoutCollection.h"
 
 #include "UserCode/L1TriggerDPG/interface/L1AnalysisL1Extra.h"
 
@@ -71,7 +72,8 @@ namespace l1menu
 		virtual void setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets ); // do ET total, |MET|
 		virtual void setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts ); // do HT total, |MHT|
 		// virtual void setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings );
-		virtual void setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon);
+		virtual void setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon); // for l1extra muons
+		virtual void setMuons( edm::Handle<L1MuGMTReadoutCollection> muon ); // for re emulated GMT muons
 
 		//
 		// These are the methods required by the l1menu::IEvent interface.

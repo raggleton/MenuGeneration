@@ -105,7 +105,7 @@ void l1menu::L1TriggerDPGEvent::setL1Bits( bool * bits)
 	
 }
 
-// Manual setters
+// Manual setters, implementation of FullSample::fillSample()
 // If you change the DataFormat you might need to change this!
 // instead of storing 2 collections for isolated and non-isolated obj (former is subset of latter),
 // add in a bool flag to indicate if a particular EG is isolated or not.
@@ -252,7 +252,7 @@ void l1menu::L1TriggerDPGEvent::setHFring( edm::Handle<l1extra::L1HFRingsCollect
 */
 
 
-void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon)
+void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon )
 {
 
 	for(l1extra::L1MuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end(); it++)
@@ -272,6 +272,11 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCol
     }
 }
 
+void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> reEmulMuon )
+{
+	// methods taken from L1AnalysisGMT.cc, ...
+	
+}
 
 bool l1menu::L1TriggerDPGEvent::passesTrigger( const l1menu::ITrigger& trigger ) const
 {
