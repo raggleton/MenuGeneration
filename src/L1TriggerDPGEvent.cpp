@@ -4,6 +4,7 @@
 #include "l1menu/L1TriggerDPGEvent.h"
 #include "l1menu/ITrigger.h"
 #include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
+#include "UserCode/L1TriggerDPG/interface/L1AnalysisGMTDataFormat.h"
 
 namespace l1menu
 {
@@ -16,7 +17,103 @@ namespace l1menu
 		bool physicsBits[128];
 		float weight;
 		const l1menu::ISample* pParentSample_;
+
+		// taken from FullSample.cpp:
+		int phiINjetCoord( double phi );
+		int etaINjetCoord( double eta );
+		double calculateHTT( const L1Analysis::L1AnalysisDataFormat& event );
+		double calculateHTM( const L1Analysis::L1AnalysisDataFormat& event );
+	
+	private:
+		static const size_t PHIBINS;
+		static const double PHIBIN[];
+		static const size_t ETABINS;
+		static const double ETABIN[];
+
+		double degree( double radian );
 	};
+}
+
+const size_t l1menu::L1TriggerDPGEventPrivateMembers::PHIBINS=18;
+const double l1menu::L1TriggerDPGEventPrivateMembers::PHIBIN[]={10,30,50,70,90,110,130,150,170,190,210,230,250,270,290,310,330,350};
+const size_t l1menu::L1TriggerDPGEventPrivateMembers::ETABINS=23;
+const double l1menu::L1TriggerDPGEventPrivateMembers::ETABIN[]={-5.,-4.5,-4.,-3.5,-3.,-2.172,-1.74,-1.392,-1.044,-0.696,-0.348,0,0.348,0.696,1.044,1.392,1.74,2.172,3.,3.5,4.,4.5,5.};
+
+double l1menu::L1TriggerDPGEventPrivateMembers::degree( double radian )
+{
+	if( radian<0 ) return 360.+(radian/M_PI*180.);
+	else return radian/M_PI*180.;
+}
+
+int l1menu::L1TriggerDPGEventPrivateMembers::phiINjetCoord( double phi )
+{
+	size_t phiIdx=0;
+	double phidegree=degree( phi );
+	for( size_t idx=0; idx<PHIBINS; idx++ )
+	{
+		if( phidegree>=PHIBIN[idx] and phidegree<PHIBIN[idx+1] ) phiIdx=idx;
+		else if( phidegree>=PHIBIN[PHIBINS-1] || phidegree<=PHIBIN[0] ) phiIdx=idx;
+	}
+	phiIdx=phiIdx+1;
+	if( phiIdx==18 ) phiIdx=0;
+	return int( phiIdx );
+}
+
+int l1menu::L1TriggerDPGEventPrivateMembers::etaINjetCoord( double eta )
+{
+	size_t etaIdx=0.;
+	for( size_t idx=0; idx<ETABINS; idx++ )
+	{
+		if( eta>=ETABIN[idx] and eta<ETABIN[idx+1] ) etaIdx=idx;
+	}
+	return int( etaIdx );
+}
+
+double l1menu::L1TriggerDPGEventPrivateMembers::calculateHTT( const L1Analysis::L1AnalysisDataFormat& event )
+{
+	double httValue=0.;
+
+	// Calculate our own HT and HTM from the jets that survive the double jet removal.
+	for( int i=0; i<event.Njet; i++ )
+	{
+		if( event.Bxjet.at( i )==0 && !event.Taujet.at(i) )
+		{
+			if( event.Etajet.at( i )>4 and event.Etajet.at( i )<17 )
+			{
+				httValue+=event.Etjet.at( i );
+			} //in proper eta range
+		} //correct beam crossing
+	} //loop over cleaned jets
+
+	return httValue;
+}
+
+double l1menu::L1TriggerDPGEventPrivateMembers::calculateHTM( const L1Analysis::L1AnalysisDataFormat& event )
+{
+	double htmValue=0.;
+	double htmValueX=0.;
+	double htmValueY=0.;
+
+	// Calculate our own HT and HTM from the jets that survive the double jet removal.
+	for( int i=0; i<event.Njet; i++ )
+	{
+		if( event.Bxjet.at( i )==0 && !event.Taujet.at(i) )
+		{
+			if( event.Etajet.at( i )>4 and event.Etajet.at( i )<17 )
+			{
+
+				//  Get the phi angle  towers are 0-17 (this is probably not real mapping but OK for just magnitude of HTM
+				float phi=2*M_PI*(event.Phijet.at( i )/18.);
+				htmValueX+=cos( phi )*event.Etjet.at( i );
+				htmValueY+=sin( phi )*event.Etjet.at( i );
+
+			} //in proper eta range
+		} //correct beam crossing
+	} //loop over cleaned jets
+
+	htmValue=sqrt( htmValueX*htmValueX+htmValueY*htmValueY );
+
+	return htmValue;
 }
 
 l1menu::L1TriggerDPGEvent::L1TriggerDPGEvent(): pImple_( new L1TriggerDPGEventPrivateMembers() )
@@ -146,8 +243,8 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 	for(l1extra::L1JetParticleCollection::const_iterator it=cenJet->begin(); it!=cenJet->end(); it++)
 	{
 		pImple_->rawEvent.Etjet.push_back(it->et());
-		pImple_->rawEvent.Etajet.push_back(it->eta());
-		pImple_->rawEvent.Phijet.push_back(it->phi());
+		pImple_->rawEvent.Etajet.push_back(pImple_->etaINjetCoord(it->eta())); // stores eta bin index NOT real eta!! - make switchable?
+		pImple_->rawEvent.Phijet.push_back(pImple_->phiINjetCoord(it->phi())); // stores phi bin index, NOT real phi!!
 		pImple_->rawEvent.Bxjet.push_back(it->bx());
 		pImple_->rawEvent.Fwdjet.push_back(false);
 		pImple_->rawEvent.Taujet.push_back(true);
@@ -158,8 +255,8 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 	for(l1extra::L1JetParticleCollection::const_iterator it=fwdJet->begin(); it!=fwdJet->end(); it++)
 	{
 		pImple_->rawEvent.Etjet.push_back(it->et());
-		pImple_->rawEvent.Etajet.push_back(it->eta());
-		pImple_->rawEvent.Phijet.push_back(it->phi());
+		pImple_->rawEvent.Etajet.push_back(pImple_->etaINjetCoord(it->eta()));
+		pImple_->rawEvent.Phijet.push_back(pImple_->phiINjetCoord(it->phi()));
 		pImple_->rawEvent.Bxjet.push_back(it->bx());
 		pImple_->rawEvent.Fwdjet.push_back(true);
 		pImple_->rawEvent.Taujet.push_back(true);
@@ -170,7 +267,7 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 
 void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet )
 {
-	for(l1extra::L1JetParticleCollection::const_iterator it=tauJet->begin(); it!=tauJet->end(); it++)
+	/*for(l1extra::L1JetParticleCollection::const_iterator it=tauJet->begin(); it!=tauJet->end(); it++)
 	{
 		pImple_->rawEvent.Etjet.push_back(it->et());
 		pImple_->rawEvent.Etajet.push_back(it->eta());
@@ -193,13 +290,14 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 			}
 		}
 		pImple_->rawEvent.isoTaujet.push_back(iso);
-    } // TODO - ISO TAUS
+    } // TODO - ISO TAUS*/
 }		
 
 void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets )
 {
 	//ET Total, |MET, PhiETM
-	for(l1extra::L1EtMissParticleCollection::const_iterator it=mets->begin(); it!=mets->end(); it++) {
+	for(l1extra::L1EtMissParticleCollection::const_iterator it=mets->begin(); it!=mets->end(); it++) 
+	{
 	    pImple_->rawEvent.ETT = it->etTotal(); 
 	    pImple_->rawEvent.ETM = it->et();
 	    pImple_->rawEvent.PhiETM = it->phi();
@@ -217,12 +315,16 @@ void l1menu::L1TriggerDPGEvent::setHTSums( edm::Handle<l1extra::L1EtMissParticle
 	//HT Total, |MHT|, PhiHTM
 	
 	// TODO(Robin): check with Mark to see it this is correct - am I meant to use the calculateHTT and calculateHTM methods in FullSample?
-	for(l1extra::L1EtMissParticleCollection::const_iterator it=mhts->begin(); it!=mhts->end(); it++) {
-		pImple_->rawEvent.HTT = it->etTotal();
-		pImple_->rawEvent.HTM = it->et();
-		pImple_->rawEvent.PhiHTM = it->phi();
-		// pImple_->rawEvent.mhtBx. push_back( it->bx() );
-		// pImple_->rawEvent.nMht++;
+	for(l1extra::L1EtMissParticleCollection::const_iterator it=mhts->begin(); it!=mhts->end(); it++) 
+	{
+		if (it->bx() == 0)
+		{
+			pImple_->rawEvent.HTT = pImple_->calculateHTT( pImple_->rawEvent );
+			pImple_->rawEvent.HTM = pImple_->calculateHTM( pImple_->rawEvent );
+			pImple_->rawEvent.PhiHTM = 0.;
+			// pImple_->rawEvent.mhtBx. push_back( it->bx() );
+			// pImple_->rawEvent.nMht++;
+		}
 	}
 	// Overflow not available
 	pImple_->rawEvent.OvHTT = false;
@@ -251,7 +353,7 @@ void l1menu::L1TriggerDPGEvent::setHFring( edm::Handle<l1extra::L1HFRingsCollect
 } 
 */
 
-
+// For L1Extra muons
 void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon )
 {
 
@@ -272,10 +374,35 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCol
     }
 }
 
+// For re-emulated GMT muons
 void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> reEmulMuon )
 {
 	// methods taken from L1AnalysisGMT.cc, ...
 	
+	std::vector<L1MuGMTReadoutRecord> gmt_records = (reEmulMuon.product())->getRecords();
+	for(std::vector<L1MuGMTReadoutRecord>::const_iterator igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) 
+	{ // loop over bunch crossings
+
+	    std::vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
+		for(std::vector<L1MuGMTExtendedCand>::const_iterator gmt_iter=exc.begin(); gmt_iter!=exc.end(); gmt_iter++)
+		{ // loop over muon candidates within a bunch crossing
+			if(!(*gmt_iter).empty())
+			{
+				pImple_->rawEvent.Ptmu.push_back(gmt_iter->ptValue());
+				pImple_->rawEvent.Etamu.push_back(gmt_iter->etaValue());
+				pImple_->rawEvent.Phimu.push_back(gmt_iter->phiValue());
+				// pImple_->rawEvent.muonChg.push_back(gmt_iter->charge());
+				// pImple_->rawEvent.muonMip.push_back(gmt_iter->mip());
+				// pImple_->rawEvent.muonFwd.push_back(it->isForward());
+				// pImple_->rawEvent.muonRPC.push_back(gmt_iter->isRPC());
+				// pImple_->rawEvent.Isomu.push_back(it->isIsolated());
+				pImple_->rawEvent.Isomu.push_back(gmt_iter->isol());
+				pImple_->rawEvent.Bxmu.push_back(gmt_iter->bx());
+				pImple_->rawEvent.Qualmu.push_back(gmt_iter->quality());
+				pImple_->rawEvent.Nmu++;
+			}
+		}
+	}
 }
 
 bool l1menu::L1TriggerDPGEvent::passesTrigger( const l1menu::ITrigger& trigger ) const

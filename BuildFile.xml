@@ -5,6 +5,9 @@
 <use name="xerces-c" />
 <use name="UserCode/L1TriggerDPG"/>
 <use name="UserCode/L1TriggerUpgrade"/>
+<use name="DataFormats/L1GlobalTrigger"/>
+<use name="DataFormats/L1GlobalMuonTrigger"/>
+<use name="DataFormats/L1Trigger"/>
 
 <use name="FWCore/FWLite"/>
 <include_path path="interface"/>
