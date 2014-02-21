@@ -265,9 +265,11 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 
 }		
 
+
 void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet )
 {
-	/*for(l1extra::L1JetParticleCollection::const_iterator it=tauJet->begin(); it!=tauJet->end(); it++)
+	// Note you don't need to pass it a real isoTau collection - it will check for it below
+	for(l1extra::L1JetParticleCollection::const_iterator it=tauJet->begin(); it!=tauJet->end(); it++)
 	{
 		pImple_->rawEvent.Etjet.push_back(it->et());
 		pImple_->rawEvent.Etajet.push_back(it->eta());
@@ -279,18 +281,21 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 
 		// test if same object in the isolated list
 		bool iso = false;
-		for(l1extra::L1JetParticleCollection::const_iterator itIso=isoTauJet->begin(); itIso!=isoTauJet->end(); itIso++)
+		if (isoTauJet.product() != NULL) 
 		{
-			if ( it->eta() == itIso->eta() && it->phi() == itIso->phi() )
+			for(l1extra::L1JetParticleCollection::const_iterator itIso=isoTauJet->begin(); itIso!=isoTauJet->end(); itIso++)
 			{
-				// remove the iso obj from the iso collection to make future loops faster
-				// isoEm->erase(itIso);
-				iso = true;
-				break;
+				if ( it->eta() == itIso->eta() && it->phi() == itIso->phi() )
+				{
+					// remove the iso obj from the iso collection to make future loops faster
+					// isoEm->erase(itIso);
+					iso = true;
+					break;
+				}
 			}
 		}
 		pImple_->rawEvent.isoTaujet.push_back(iso);
-    } // TODO - ISO TAUS*/
+    }
 }		
 
 void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets )
@@ -366,8 +371,8 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCol
 		// pImple_->rawEvent.muonMip.push_back(it->isMip());
 		// pImple_->rawEvent.muonFwd.push_back(it->isForward());
 		// pImple_->rawEvent.muonRPC.push_back(it->isRPC());
-		// pImple_->rawEvent.Isomu.push_back(it->isIsolated());
-		pImple_->rawEvent.Isomu.push_back(false);
+		pImple_->rawEvent.Isomu.push_back(it->isIsolated());
+		// pImple_->rawEvent.Isomu.push_back(false);
 		pImple_->rawEvent.Bxmu.push_back(it->bx());
 		pImple_->rawEvent.Qualmu.push_back(it->gmtMuonCand().quality());
 		pImple_->rawEvent.Nmu++;
@@ -379,7 +384,8 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> 
 {
 	// methods taken from L1AnalysisGMT.cc, ...
 	
-	std::vector<L1MuGMTReadoutRecord> gmt_records = (reEmulMuon.product())->getRecords();
+	// std::vector<L1MuGMTReadoutRecord> gmt_records = (reEmulMuon.product())->getRecords();
+	std::vector<L1MuGMTReadoutRecord> gmt_records = reEmulMuon->getRecords();
 	for(std::vector<L1MuGMTReadoutRecord>::const_iterator igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) 
 	{ // loop over bunch crossings
 
