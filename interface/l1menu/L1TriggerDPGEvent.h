@@ -73,8 +73,7 @@ namespace l1menu
 		virtual void setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts ); // do HT total, |MHT|
 		// virtual void setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings );
 		virtual void setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon); // for l1extra muons
-		virtual void setMuons( edm::Handle<L1GlobalTriggerReadoutRecord> gtrr ); // for re emulated GMT muons
-		// virtual void setMuons( edm::Handle<L1MuGMTReadoutCollection> muon ); // for re emulated GMT muons
+		virtual void setMuons( edm::Handle<L1MuGMTReadoutCollection> muon ); // for re emulated GMT muons
 
 		//
 		// These are the methods required by the l1menu::IEvent interface.

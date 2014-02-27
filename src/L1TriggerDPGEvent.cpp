@@ -198,6 +198,8 @@ void l1menu::L1TriggerDPGEvent::setL1Bits( bool * bits)
 
 	// Passing arrays is always a bit dodgy. Should probably do this better - this assumes 128 bits! 
 	// set the pimpl member bits to argument bits
+	// for (unsigned i = 0; i < 128; i++)
+		// std::cout << i << "th bit " << bits[i] << std::endl;
 	std::copy(bits, bits+128, pImple_->physicsBits);
 	
 }
@@ -209,8 +211,16 @@ void l1menu::L1TriggerDPGEvent::setL1Bits( bool * bits)
 // Could add in generic method for looping over 2 collections, but need specifics for each scenario
 void l1menu::L1TriggerDPGEvent::setEG( edm::Handle<l1extra::L1EmParticleCollection> nonIsoEm, edm::Handle<l1extra::L1EmParticleCollection> isoEm )
 {
+	// std::cout << "setEG" << std::endl;
+
 	for(l1extra::L1EmParticleCollection::const_iterator it=nonIsoEm->begin(); it!=nonIsoEm->end(); it++)
 	{  
+		// std::cout << it->et() << "\t"
+		// 		<< it->eta() << "\t"
+		// 		<< it->phi() << "\t"
+		// 		<< it->bx() << "\t"
+		// 		<< std::endl;
+
 		pImple_->rawEvent.Etel.push_back(it->et());
 		pImple_->rawEvent.Etael.push_back(it->eta());
 		pImple_->rawEvent.Phiel.push_back(it->phi());
@@ -225,6 +235,7 @@ void l1menu::L1TriggerDPGEvent::setEG( edm::Handle<l1extra::L1EmParticleCollecti
 			{
 				// remove the iso obj from the iso collection to make future loops faster
 				// isoEm->erase(itIso);
+				// std::cout << "is isolated" << std::endl;
 				iso = true;
 				break;
 			}
@@ -239,6 +250,7 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 	// TODO(Robin): Do I need to clean/mark those jets which are also taus? 
 	// ATM just mark all jets as not tau jets!!
 	// In which case might require merging setJets and setTaus
+	// std::cout << "setJets" << std::endl;
 
 	// Do cen jets first
 	for(l1extra::L1JetParticleCollection::const_iterator it=cenJet->begin(); it!=cenJet->end(); it++)
@@ -254,12 +266,20 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 				&& it->phi() == itDup->phi() )
 			{
 				duplicate=true;
-				printf("Duplicate jet found and removed \n");
+				// printf("Duplicate jet found and removed \n");
 			}
 		}
 
 		if( !duplicate )
 		{
+			// std::cout << it->et() << "\t"
+			// 		<< it->eta() << "\t"
+			// 		<< pImple_->etaINjetCoord(it->eta()) << "\t"
+			// 		<< it->phi() << "\t"
+			// 		<< pImple_->phiINjetCoord(it->phi()) << "\t"
+			// 		<< it->bx() << "\t"
+			// 		<< std::endl;
+
 			pImple_->rawEvent.Etjet.push_back(it->et());
 			pImple_->rawEvent.Etajet.push_back(pImple_->etaINjetCoord(it->eta())); // stores eta bin index NOT real eta!! - make switchable?
 			pImple_->rawEvent.Phijet.push_back(pImple_->phiINjetCoord(it->phi())); // stores phi bin index, NOT real phi!!
@@ -274,9 +294,18 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 		}
     }
 
+    // std::cout << "do forward jets" << std::endl;
     // Do forward jets
 	for(l1extra::L1JetParticleCollection::const_iterator it=fwdJet->begin(); it!=fwdJet->end(); it++)
 	{
+
+		// std::cout << it->et() << "\t"
+		// 		<< it->eta() << "\t"
+		// 		<< pImple_->etaINjetCoord(it->eta()) << "\t"
+		// 		<< it->phi() << "\t"
+		// 		<< pImple_->phiINjetCoord(it->phi()) << "\t"
+		// 		<< it->bx() << "\t"
+		// 		<< std::endl;
 		pImple_->rawEvent.Etjet.push_back(it->et());
 		pImple_->rawEvent.Etajet.push_back(pImple_->etaINjetCoord(it->eta()));
 		pImple_->rawEvent.Phijet.push_back(pImple_->phiINjetCoord(it->phi()));
@@ -291,6 +320,8 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 
 void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet )
 {
+	// std::cout << "setTaus" << std::endl;
+
 	// Note you don't need to pass it a real isoTau collection - it will check for it below
 	for(l1extra::L1JetParticleCollection::const_iterator it=tauJet->begin(); it!=tauJet->end(); it++)
 	{
@@ -304,12 +335,17 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 				&& it->phi() == itDup->phi() )
 			{
 				duplicate=true;
-				printf("Duplicate tau found and removed \n");
+				// printf("Duplicate tau found and removed \n");
 			}
 		}
 
 		if( !duplicate )
 		{
+			// std::cout << it->et() << "\t"
+			// 	<< it->eta() << "\t"
+			// 	<< it->phi() << "\t"
+			// 	<< it->bx() << "\t"
+			// 	<< std::endl;
 			pImple_->rawEvent.Etjet.push_back(it->et());
 			pImple_->rawEvent.Etajet.push_back(it->eta());
 			pImple_->rawEvent.Phijet.push_back(it->phi());
@@ -328,6 +364,7 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 					{
 						// remove the iso obj from the iso collection to make future loops faster
 						// isoEm->erase(itIso);
+						//std::cout << "is isolated" << std::endl;
 						iso = true;
 						break;
 					}
@@ -340,9 +377,15 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 
 void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets )
 {
-	//ET Total, |MET, PhiETM
+	// ET Total, |MET|, PhiETM
+	// std::cout << "setETSums" << std::endl;
+
 	for(l1extra::L1EtMissParticleCollection::const_iterator it=mets->begin(); it!=mets->end(); it++) 
 	{
+		// std::cout << it->etTotal() << "\t"
+		// 		<< it->et() << "\t"
+		// 		<< it->phi() << "\t"
+		// 		<< std::endl;
 	    pImple_->rawEvent.ETT = it->etTotal(); 
 	    pImple_->rawEvent.ETM = it->et();
 	    pImple_->rawEvent.PhiETM = it->phi();
@@ -357,13 +400,16 @@ void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticle
 
 void l1menu::L1TriggerDPGEvent::setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts )
 {
-	//HT Total, |MHT|, PhiHTM
-	
-	// TODO(Robin): check with Mark to see it this is correct - am I meant to use the calculateHTT and calculateHTM methods in FullSample?
+	// HT Total, |MHT|, PhiHTM
+	// std::cout << "setHTSums" << std::endl;
+
 	for(l1extra::L1EtMissParticleCollection::const_iterator it=mhts->begin(); it!=mhts->end(); it++) 
 	{
 		if (it->bx() == 0)
 		{
+			// std::cout << pImple_->calculateHTT( pImple_->rawEvent ) << "\t"
+			// 		<< pImple_->calculateHTM( pImple_->rawEvent ) << "\t"
+			// 		<< std::endl;
 			pImple_->rawEvent.HTT = pImple_->calculateHTT( pImple_->rawEvent );
 			pImple_->rawEvent.HTM = pImple_->calculateHTM( pImple_->rawEvent );
 			pImple_->rawEvent.PhiHTM = 0.;
@@ -401,9 +447,16 @@ void l1menu::L1TriggerDPGEvent::setHFring( edm::Handle<l1extra::L1HFRingsCollect
 // For L1Extra muons
 void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon )
 {
-
+	// std::cout << "setMuons" << std::endl;
 	for(l1extra::L1MuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end(); it++)
 	{
+		// std::cout << it->et() << "\t"
+		// 		<< it->eta() << "\t"
+		// 		<< it->phi() << "\t"
+		// 		<< it->bx() << "\t"
+		// 		<< it->isIsolated() << "\t"
+		// 		<< it->gmtMuonCand().quality()<< "\t"
+		// 		<< std::endl;
 		pImple_->rawEvent.Ptmu.push_back(it->et());
 		pImple_->rawEvent.Etamu.push_back(it->eta());
 		pImple_->rawEvent.Phimu.push_back(it->phi());
@@ -420,38 +473,42 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCol
 }
 
 // For re-emulated GMT muons
-void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1GlobalTriggerReadoutRecord> gtrr )
-// void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> reEmulMuon )
+void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> reEmulMuon )
 {
+	// std::cout << "setGMTMuons" << std::endl;
+
 	// methods taken from L1AnalysisGMT.cc, ...
-	// const L1MuGMTReadoutCollection * gmtRC = (gtrr->muCollectionRefProd());
-	const edm::RefProd<L1MuGMTReadoutCollection> gmtRC = (gtrr->muCollectionRefProd());
+	std::vector<L1MuGMTReadoutRecord> gmt_records = (reEmulMuon.product())->getRecords();
+	for(std::vector<L1MuGMTReadoutRecord>::const_iterator igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) 
+	{ // loop over bunch crossings?
 
-	std::vector<L1MuGMTReadoutRecord> const & gmt_records = (gmtRC.product())->getRecords();
-	std::cout << gmt_records.empty() << std::endl;
-	// for(std::vector<L1MuGMTReadoutRecord>::const_iterator igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) 
-	// { // loop over bunch crossings
-
-	//     std::vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
-	// 	for(std::vector<L1MuGMTExtendedCand>::const_iterator gmt_iter=exc.begin(); gmt_iter!=exc.end(); gmt_iter++)
-	// 	{ // loop over muon candidates within a bunch crossing
-	// 		if(!(*gmt_iter).empty())
-	// 		{
-	// 			pImple_->rawEvent.Ptmu.push_back(gmt_iter->ptValue());
-	// 			pImple_->rawEvent.Etamu.push_back(gmt_iter->etaValue());
-	// 			pImple_->rawEvent.Phimu.push_back(gmt_iter->phiValue());
-	// 			// pImple_->rawEvent.muonChg.push_back(gmt_iter->charge());
-	// 			// pImple_->rawEvent.muonMip.push_back(gmt_iter->mip());
-	// 			// pImple_->rawEvent.muonFwd.push_back(it->isForward());
-	// 			// pImple_->rawEvent.muonRPC.push_back(gmt_iter->isRPC());
-	// 			// pImple_->rawEvent.Isomu.push_back(it->isIsolated());
-	// 			pImple_->rawEvent.Isomu.push_back(gmt_iter->isol());
-	// 			pImple_->rawEvent.Bxmu.push_back(gmt_iter->bx());
-	// 			pImple_->rawEvent.Qualmu.push_back(gmt_iter->quality());
-	// 			pImple_->rawEvent.Nmu++;
-	// 		}
-	// 	}
-	// }
+	    std::vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
+		for(std::vector<L1MuGMTExtendedCand>::const_iterator gmt_iter=exc.begin(); gmt_iter!=exc.end(); gmt_iter++)
+		{ // loop over muon candidates within a bunch crossing
+			if(!(*gmt_iter).empty())
+			{
+				// std::cout << gmt_iter->ptValue() << "\t"
+				// 		<< gmt_iter->etaValue() << "\t"
+				// 		<< gmt_iter->phiValue() << "\t"
+				// 		<< gmt_iter->bx() << "\t"
+				// 		<< gmt_iter->isol() << "\t"
+				// 		<< gmt_iter->quality()<< "\t"
+				// 		<< std::endl;
+				pImple_->rawEvent.Ptmu.push_back(gmt_iter->ptValue());
+				pImple_->rawEvent.Etamu.push_back(gmt_iter->etaValue());
+				pImple_->rawEvent.Phimu.push_back(gmt_iter->phiValue());
+				// pImple_->rawEvent.muonChg.push_back(gmt_iter->charge());
+				// pImple_->rawEvent.muonMip.push_back(gmt_iter->mip());
+				// pImple_->rawEvent.muonFwd.push_back(it->isForward());
+				// pImple_->rawEvent.muonRPC.push_back(gmt_iter->isRPC());
+				// pImple_->rawEvent.Isomu.push_back(it->isIsolated());
+				pImple_->rawEvent.Isomu.push_back(gmt_iter->isol());
+				pImple_->rawEvent.Bxmu.push_back(gmt_iter->bx());
+				pImple_->rawEvent.Qualmu.push_back(gmt_iter->quality());
+				pImple_->rawEvent.Nmu++;
+			}
+		}
+	}
 }
 
 bool l1menu::L1TriggerDPGEvent::passesTrigger( const l1menu::ITrigger& trigger ) const
