@@ -217,13 +217,15 @@ void l1menu::L1TriggerDPGEvent::setEG( edm::Handle<l1extra::L1EmParticleCollecti
 	{  
 		// std::cout << it->et() << "\t"
 		// 		<< it->eta() << "\t"
+		// 		<< pImple_->etaINjetCoord(it->eta()) << "\t"
 		// 		<< it->phi() << "\t"
+		// 		<< pImple_->phiINjetCoord(it->phi()) << "\t"
 		// 		<< it->bx() << "\t"
 		// 		<< std::endl;
 
 		pImple_->rawEvent.Etel.push_back(it->et());
-		pImple_->rawEvent.Etael.push_back(it->eta());
-		pImple_->rawEvent.Phiel.push_back(it->phi());
+		pImple_->rawEvent.Etael.push_back(pImple_->etaINjetCoord(it->eta()));
+		pImple_->rawEvent.Phiel.push_back(pImple_->phiINjetCoord(it->phi()));
 		pImple_->rawEvent.Bxel.push_back(it->bx());
 		pImple_->rawEvent.Nele++;
 
@@ -347,8 +349,8 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 			// 	<< it->bx() << "\t"
 			// 	<< std::endl;
 			pImple_->rawEvent.Etjet.push_back(it->et());
-			pImple_->rawEvent.Etajet.push_back(it->eta());
-			pImple_->rawEvent.Phijet.push_back(it->phi());
+			pImple_->rawEvent.Etajet.push_back(pImple_->etaINjetCoord(it->eta()));
+			pImple_->rawEvent.Phijet.push_back(pImple_->phiINjetCoord(it->phi()));
 			pImple_->rawEvent.Bxjet.push_back(it->bx());
 			pImple_->rawEvent.Fwdjet.push_back(false);
 			pImple_->rawEvent.Taujet.push_back(true);
@@ -364,7 +366,7 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 					{
 						// remove the iso obj from the iso collection to make future loops faster
 						// isoEm->erase(itIso);
-						//std::cout << "is isolated" << std::endl;
+						// std::cout << "Tau is isolated" << std::endl;
 						iso = true;
 						break;
 					}
