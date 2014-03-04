@@ -292,6 +292,7 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 			//  This is a problem in Stage 2 Jet code.
 			(fabs( it->eta() )>=3.0) ? pImple_->rawEvent.Fwdjet.push_back(true) : pImple_->rawEvent.Fwdjet.push_back(false);
 			pImple_->rawEvent.Taujet.push_back(false);
+			pImple_->rawEvent.isoTaujet.push_back(false);
 			pImple_->rawEvent.Njet++;
 		}
     }
@@ -314,6 +315,7 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 		pImple_->rawEvent.Bxjet.push_back(it->bx());
 		pImple_->rawEvent.Fwdjet.push_back(true);
 		pImple_->rawEvent.Taujet.push_back(false);
+		pImple_->rawEvent.isoTaujet.push_back(false);
 		pImple_->rawEvent.Njet++;
     }
 
