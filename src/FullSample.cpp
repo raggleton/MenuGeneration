@@ -11,7 +11,7 @@
 #include "l1menu/IMenuRate.h"
 #include "./implementation/MenuRateImplementation.h"
 #include "L1UpgradeNtuple.h"
-#include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
+#include "L1AnalysisDataFormat.h"
 #include "UserCode/L1TriggerUpgrade/interface/L1AnalysisL1ExtraUpgradeDataFormat.h"
 #include "UserCode/L1TriggerDPG/interface/L1AnalysisEventDataFormat.h"
 #include "UserCode/L1TriggerDPG/interface/L1AnalysisGTDataFormat.h"

@@ -2,7 +2,7 @@
 #include "l1menu/L1TriggerDPGEvent.h"
 
 #include <stdexcept>
-#include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
+#include "L1AnalysisDataFormat.h"
 
 #include "l1menu/ITrigger.h"
 

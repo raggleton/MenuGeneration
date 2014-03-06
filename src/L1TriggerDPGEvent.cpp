@@ -3,7 +3,7 @@
 
 #include "l1menu/L1TriggerDPGEvent.h"
 #include "l1menu/ITrigger.h"
-#include "UserCode/L1TriggerUpgrade/interface/L1AnalysisDataFormat.h"
+#include "L1AnalysisDataFormat.h"
 #include "UserCode/L1TriggerDPG/interface/L1AnalysisGMTDataFormat.h"
 
 namespace l1menu
@@ -247,6 +247,21 @@ void l1menu::L1TriggerDPGEvent::setEG( edm::Handle<l1extra::L1EmParticleCollecti
     }
 }		
 
+
+void l1menu::L1TriggerDPGEvent::setTkEM( edm::Handle<l1extra::L1TkEmParticleCollection> tkEM )
+{
+std::cout << "poo" << std::endl;
+
+}
+
+
+void l1menu::L1TriggerDPGEvent::setTkEle( edm::Handle<l1extra::L1TkElectronParticleCollection> tkEle, edm::Handle<l1extra::L1TkElectronParticleCollection> tkIsoEle )
+{
+std::cout << "poo" << std::endl;
+
+}
+
+
 void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleCollection> cenJet, edm::Handle<l1extra::L1JetParticleCollection> fwdJet )
 {
 	// TODO(Robin): Do I need to clean/mark those jets which are also taus? 
@@ -322,6 +337,13 @@ void l1menu::L1TriggerDPGEvent::setJets( edm::Handle<l1extra::L1JetParticleColle
 }		
 
 
+void l1menu::L1TriggerDPGEvent::setTkJets( edm::Handle<l1extra::L1TkJetParticleCollection> tkJet )
+{
+std::cout << "poo" << std::endl;
+
+}
+
+
 void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet )
 {
 	// std::cout << "setTaus" << std::endl;
@@ -377,76 +399,8 @@ void l1menu::L1TriggerDPGEvent::setTaus( edm::Handle<l1extra::L1JetParticleColle
 			pImple_->rawEvent.isoTaujet.push_back(iso);
 		}
     }
-}		
+}
 
-void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets )
-{
-	// ET Total, |MET|, PhiETM
-	// std::cout << "setETSums" << std::endl;
-
-	for(l1extra::L1EtMissParticleCollection::const_iterator it=mets->begin(); it!=mets->end(); it++) 
-	{
-		// std::cout << it->etTotal() << "\t"
-		// 		<< it->et() << "\t"
-		// 		<< it->phi() << "\t"
-		// 		<< std::endl;
-	    pImple_->rawEvent.ETT = it->etTotal(); 
-	    pImple_->rawEvent.ETM = it->et();
-	    pImple_->rawEvent.PhiETM = it->phi();
-	    // pImple_->rawEvent.metBx. push_back( it->bx() );
-	    // pImple_->rawEvent.nMet++;
-	}
-	// Overflow not available 
-	pImple_->rawEvent.OvETT = false;
-	pImple_->rawEvent.OvETM = false;
-	
-} 
-
-void l1menu::L1TriggerDPGEvent::setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts )
-{
-	// HT Total, |MHT|, PhiHTM
-	// std::cout << "setHTSums" << std::endl;
-
-	for(l1extra::L1EtMissParticleCollection::const_iterator it=mhts->begin(); it!=mhts->end(); it++) 
-	{
-		if (it->bx() == 0)
-		{
-			// std::cout << pImple_->calculateHTT( pImple_->rawEvent ) << "\t"
-			// 		<< pImple_->calculateHTM( pImple_->rawEvent ) << "\t"
-			// 		<< std::endl;
-			pImple_->rawEvent.HTT = pImple_->calculateHTT( pImple_->rawEvent );
-			pImple_->rawEvent.HTM = pImple_->calculateHTM( pImple_->rawEvent );
-			pImple_->rawEvent.PhiHTM = 0.;
-			// pImple_->rawEvent.mhtBx. push_back( it->bx() );
-			// pImple_->rawEvent.nMht++;
-		}
-	}
-	// Overflow not available
-	pImple_->rawEvent.OvHTT = false;
-	pImple_->rawEvent.OvHTM = false;
-	
-} 
-
-/*
-void l1menu::L1TriggerDPGEvent::setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings )
-{
-	//ETT, ETM, PhiETM, HTT, HTM, PhiHTM
-   pImple_->rawEvent.hfEtSum.resize(4);
-   pImple_->rawEvent.hfBitCnt.resize(4);
-   pImple_->rawEvent.hfBx.resize(4);
-  
-    for(unsigned int i=0; i<4; ++i)  
-    {
-		if (hfRings->size()==0) continue;
-
-		pImple_->rawEvent.hfEtSum[i] = (hfRings->begin()->hfEtSum((l1extra::L1HFRings::HFRingLabels) i));
-		pImple_->rawEvent.hfBitCnt[i] = (hfRings->begin()->hfBitCount((l1extra::L1HFRings::HFRingLabels) i));
-		pImple_->rawEvent.hfBx[i] = hfRings->begin()->bx();
-    }
-	
-	std::cout << "This method not implemented yet. You shouldn't be calling it!" << std::endl;
-} 
-*/
 
 // For L1Extra muons
 void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon )
@@ -514,6 +468,91 @@ void l1menu::L1TriggerDPGEvent::setMuons( edm::Handle<L1MuGMTReadoutCollection> 
 		}
 	}
 }
+
+
+void l1menu::L1TriggerDPGEvent::setTkMuons( edm::Handle<l1extra::L1TkMuonParticleCollection> tkMuon )
+{
+std::cout << "poo" << std::endl;
+}
+
+
+void l1menu::L1TriggerDPGEvent::setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets )
+{
+	// ET Total, |MET|, PhiETM
+	// std::cout << "setETSums" << std::endl;
+
+	for(l1extra::L1EtMissParticleCollection::const_iterator it=mets->begin(); it!=mets->end(); it++) 
+	{
+		// std::cout << it->etTotal() << "\t"
+		// 		<< it->et() << "\t"
+		// 		<< it->phi() << "\t"
+		// 		<< std::endl;
+	    pImple_->rawEvent.ETT = it->etTotal(); 
+	    pImple_->rawEvent.ETM = it->et();
+	    pImple_->rawEvent.PhiETM = it->phi();
+	    // pImple_->rawEvent.metBx. push_back( it->bx() );
+	    // pImple_->rawEvent.nMet++;
+	}
+	// Overflow not available 
+	pImple_->rawEvent.OvETT = false;
+	pImple_->rawEvent.OvETM = false;
+	
+} 
+
+
+void l1menu::L1TriggerDPGEvent::setTkMet( edm::Handle<l1extra::L1TkEtMissParticleCollection> tkMet )
+{
+	std::cout << "poo" << std::endl;
+
+}
+
+
+void l1menu::L1TriggerDPGEvent::setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts )
+{
+	// HT Total, |MHT|, PhiHTM
+	// std::cout << "setHTSums" << std::endl;
+
+	for(l1extra::L1EtMissParticleCollection::const_iterator it=mhts->begin(); it!=mhts->end(); it++) 
+	{
+		if (it->bx() == 0)
+		{
+			// std::cout << pImple_->calculateHTT( pImple_->rawEvent ) << "\t"
+			// 		<< pImple_->calculateHTM( pImple_->rawEvent ) << "\t"
+			// 		<< std::endl;
+			pImple_->rawEvent.HTT = pImple_->calculateHTT( pImple_->rawEvent );
+			pImple_->rawEvent.HTM = pImple_->calculateHTM( pImple_->rawEvent );
+			pImple_->rawEvent.PhiHTM = 0.;
+			// pImple_->rawEvent.mhtBx. push_back( it->bx() );
+			// pImple_->rawEvent.nMht++;
+		}
+	}
+	// Overflow not available
+	pImple_->rawEvent.OvHTT = false;
+	pImple_->rawEvent.OvHTM = false;
+	
+} 
+
+/*
+void l1menu::L1TriggerDPGEvent::setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings )
+{
+	//ETT, ETM, PhiETM, HTT, HTM, PhiHTM
+   pImple_->rawEvent.hfEtSum.resize(4);
+   pImple_->rawEvent.hfBitCnt.resize(4);
+   pImple_->rawEvent.hfBx.resize(4);
+  
+    for(unsigned int i=0; i<4; ++i)  
+    {
+		if (hfRings->size()==0) continue;
+
+		pImple_->rawEvent.hfEtSum[i] = (hfRings->begin()->hfEtSum((l1extra::L1HFRings::HFRingLabels) i));
+		pImple_->rawEvent.hfBitCnt[i] = (hfRings->begin()->hfBitCount((l1extra::L1HFRings::HFRingLabels) i));
+		pImple_->rawEvent.hfBx[i] = hfRings->begin()->bx();
+    }
+	
+	std::cout << "This method not implemented yet. You shouldn't be calling it!" << std::endl;
+} 
+*/
+
 
 bool l1menu::L1TriggerDPGEvent::passesTrigger( const l1menu::ITrigger& trigger ) const
 {

@@ -20,6 +20,20 @@
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 #include "DataFormats/L1GlobalMuonTrigger/interface/L1MuGMTReadoutCollection.h"
 
+#include "DataFormats/L1TrackTrigger/interface/L1TrackPrimaryVertex.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEtMissParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEtMissParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEmParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEmParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkElectronParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkElectronParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkJetParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkJetParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkHTMissParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkHTMissParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkMuonParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkMuonParticleFwd.h"
+
 #include "UserCode/L1TriggerDPG/interface/L1AnalysisL1Extra.h"
 
 // Forward declarations
@@ -67,13 +81,18 @@ namespace l1menu
 		virtual void setL1Bits( bool * bits );
 
 		virtual void setEG( edm::Handle<l1extra::L1EmParticleCollection> nonIsoEm, edm::Handle<l1extra::L1EmParticleCollection> isoEm );		
+		virtual void setTkEM( edm::Handle<l1extra::L1TkEmParticleCollection> tkEM ); // for L1EG obj isolated wrt L1Tracks ie isolated photons
+		virtual void setTkEle( edm::Handle<l1extra::L1TkElectronParticleCollection> tkEle, edm::Handle<l1extra::L1TkElectronParticleCollection> tkIsoEle ); // for L1EG obj matched to L1Tracks ie electrons
 		virtual void setJets( edm::Handle<l1extra::L1JetParticleCollection> cenJet, edm::Handle<l1extra::L1JetParticleCollection> fwdJet );
+		virtual void setTkJets( edm::Handle<l1extra::L1TkJetParticleCollection> tkJet );
 		virtual void setTaus( edm::Handle<l1extra::L1JetParticleCollection> tauJet, edm::Handle<l1extra::L1JetParticleCollection> isoTauJet );		
-		virtual void setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets ); // do ET total, |MET|
-		virtual void setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts ); // do HT total, |MHT|
-		// virtual void setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings );
 		virtual void setMuons( edm::Handle<l1extra::L1MuonParticleCollection> muon); // for l1extra muons
 		virtual void setMuons( edm::Handle<L1MuGMTReadoutCollection> muon ); // for re emulated GMT muons
+		virtual void setTkMuons( edm::Handle<l1extra::L1TkMuonParticleCollection> tkMuon ); // for L1Tk muons
+		virtual void setETSums( edm::Handle<l1extra::L1EtMissParticleCollection> mets ); // do ET total, |MET|
+		virtual void setTkMet( edm::Handle<l1extra::L1TkEtMissParticleCollection> tkMet ); // for L1Tk MET
+		virtual void setHTSums( edm::Handle<l1extra::L1EtMissParticleCollection> mhts ); // do HT total, |MHT|
+		// virtual void setHFring( edm::Handle<l1extra::L1HFRingsCollection> hfRings );
 
 		//
 		// These are the methods required by the l1menu::IEvent interface.
